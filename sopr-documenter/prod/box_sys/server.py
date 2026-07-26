@@ -66,8 +66,49 @@ def empty_doc(doc_name: str, slug: str) -> dict[str, Any]:
         "section_order": [],  # section_id list
         "sections": {},  # id -> {section_id, label, part_ids: []}
         "parts": {},  # part_code -> {part_code, leaf, section_id, created_at}
+        # Document-level glass chips used in production (not per-frag). Dedup by chip_id.
+        "tps_chips": [],
         "updated_at": time.time(),
     }
+
+
+def ensure_doc_shape(doc: dict[str, Any]) -> dict[str, Any]:
+    """Migrate older .sopr files that predate tps_chips."""
+    if "tps_chips" not in doc or not isinstance(doc.get("tps_chips"), list):
+        doc["tps_chips"] = []
+    return doc
+
+
+def record_tps_chip(
+    doc: dict[str, Any],
+    chip_id: str,
+    export_id: str = "",
+) -> dict[str, Any] | None:
+    """
+    Append or touch a chip on the document bin. No vencodes. Dedup by chip_id.
+    Returns the chip entry, or None if chip_id empty.
+    """
+    chip_id = (chip_id or "").strip()
+    if not chip_id:
+        return None
+    export_id = (export_id or "").strip()
+    now = time.time()
+    ensure_doc_shape(doc)
+    chips: list[dict[str, Any]] = doc["tps_chips"]
+    for row in chips:
+        if str(row.get("chip_id") or "") == chip_id:
+            row["last_seen_at"] = now
+            if export_id and not row.get("export_id"):
+                row["export_id"] = export_id
+            return row
+    entry = {
+        "chip_id": chip_id,
+        "export_id": export_id,
+        "first_seen_at": now,
+        "last_seen_at": now,
+    }
+    chips.append(entry)
+    return entry
 
 
 def list_docs() -> list[dict[str, Any]]:
@@ -96,7 +137,7 @@ def load_doc(slug: str) -> dict[str, Any] | None:
     path = doc_path(slug)
     if not path.is_file():
         return None
-    return load_json(path)
+    return ensure_doc_shape(load_json(path))
 
 
 def save_doc(doc: dict[str, Any]) -> None:
@@ -149,6 +190,17 @@ class Handler(SimpleHTTPRequestHandler):
     def log_message(self, fmt: str, *args: Any) -> None:
         sys_stderr = __import__("sys").stderr
         print(f"[sopr] {args[0] if args else fmt}", file=sys_stderr)
+
+    def end_headers(self) -> None:
+        # Local ROM cords (Machina / other ports may POST stamp)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        super().end_headers()
+
+    def do_OPTIONS(self) -> None:  # noqa: N802
+        self.send_response(204)
+        self.end_headers()
 
     def _json(self, code: int, payload: Any) -> None:
         raw = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -249,8 +301,31 @@ class Handler(SimpleHTTPRequestHandler):
             # newest under composer: insert at front of part_ids
             pids = sec.setdefault("part_ids", [])
             pids.insert(0, code)
+            # Optional: client peeked Machina cord — record chip on doc only (no per-frag)
+            chip_id = str(body.get("chip_id") or body.get("tps_chip") or "").strip()
+            export_id = str(body.get("export_id") or body.get("tps_export") or "").strip()
+            chip_row = None
+            if chip_id:
+                chip_row = record_tps_chip(doc, chip_id, export_id)
             save_doc(doc)
-            return self._json(201, {"ok": True, "part": part, "doc": doc})
+            return self._json(
+                201,
+                {"ok": True, "part": part, "doc": doc, "tps_chip": chip_row},
+            )
+
+        m = re.fullmatch(r"/api/docs/([^/]+)/tps-chips", path)
+        if m:
+            # Stamp current (or any) chip onto the document bin — About / whisper
+            doc = load_doc(m.group(1))
+            if not doc:
+                return self._json(404, {"ok": False, "error": "not found"})
+            chip_id = str(body.get("chip_id") or body.get("tps_chip") or "").strip()
+            export_id = str(body.get("export_id") or body.get("tps_export") or "").strip()
+            if not chip_id:
+                return self._json(400, {"ok": False, "error": "chip_id required"})
+            row = record_tps_chip(doc, chip_id, export_id)
+            save_doc(doc)
+            return self._json(200, {"ok": True, "tps_chip": row, "doc": doc})
 
         m = re.fullmatch(r"/api/docs/([^/]+)/layout", path)
         if m:

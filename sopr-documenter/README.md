@@ -101,8 +101,8 @@ Honors **soprBASIC** / `.sopr.frags.json` paper shape from Builds:
 - `SECTION[slug]` → LABEL, NOTES, SOPERS[]  
 - each SOPER → ID, FRAG, AGENT, METADATA  
 
-v0 ROM should **restore the bin document**, not the ledger-flattened generic post row.  
-Shared crate cords (TPS / Charlie / Chester) are optional later — **not required for v0**.
+v0 ROM restored the bin document.  
+v0.1 (below) adds **document-level TPS chip tracking** — not narrative mat stamps.
 
 ---
 
@@ -117,13 +117,45 @@ Shared crate cords (TPS / Charlie / Chester) are optional later — **not requir
 
 You may use sopr to *assemble* “why Chester exists / why we say export / how the platform works,” then mint stable claims into lore decks if you want. Different SKUs. Different makers. Daniel does not care; he wants the outline done by Friday.
 
-#### Product law · Machina / glass (Hands / -dw)
+#### Product law · TPS chips on sopr (Hands + DW · approved for next ship)
 
-**REMEMBER.** Consider **interactivity with TPS Machina**.  
+**Product documentation production — not narrative boxhood.**  
+If we need story books with per-line archaeology, **that is another app.** Sopr stays boring.
 
-Much documentation will **emerge from glassboxes** — walk chips, dump thinking into section bins, stamp when/where a frag was born. Not required for first fluorescent flicker, but the product is **not** a closed office silo. Glass → sopr is a first-class future cord.  
+| # | Law |
+|---|-----|
+| **1** | Store **TPS chip identity** only when tracking glass. Not ven codes, not who-ledger, not full TPS report cosplay. |
+| **2** | Chips attach to the **document**, not each fragment. A **`tps_chips` bin** (or equivalent) = chips used in production of this doc while whispering / walking glass. |
+| **3** | **No dupes.** Key by `chip_id`. Whisper twice → same entry; may bump `last_seen_at` only. |
+| **4** | **No per-frag `source_chip`.** Not even for “direct copy.” Dramatic and useless for product docs: the chip *is* already the per-message bank — if someone cares, open the chip. Tracking whether SPR-0004 came from `001-OT-674.3.2` vs `.3` does **not** matter here. |
+| **5** | **Not front-loaded on the production surface.** Compose / kanban / print stay about outline and leaves. Chip knowledge lives in **Document → About this document…** (menu) — tracking/knowledge drawer, not printed chrome, not a always-on sidebar badge stack. |
 
-—dw
+**About this document (UX):**
+
+- Menu: **Document → About this document…** (dialog / panel)  
+- Shows: doc name, slug, part/section counts, **list of `tps_chips`**, house meta  
+- **Not** free-printed into Ctrl+3 reader body by default  
+- **Not** on the compose bucket header as primary UI  
+
+**Whisper (when corded):** Machina current chip → append to open doc’s `tps_chips` (deduped). Optional: store a leaf the same act — leaf still has no chip field.
+
+**Schema sketch (implement next):**
+
+```json
+"tps_chips": [
+  {
+    "chip_id": "001-OT-008.3.0",
+    "export_id": "001-OT-008.3",
+    "first_seen_at": 0,
+    "last_seen_at": 0
+  }
+]
+```
+
+`chip_id` required · `export_id` optional convenience · times optional · **no vencodes**.
+
+— Hands / DW · freeze for approval · then run
+[ approved -dw 2026-07-25 21:39]
 
 ---
 
@@ -157,16 +189,19 @@ sopr-documenter/
 Boring specialized file (not DATBOX cosplay):
 
 - `house: BIGBOX` · `product: sopr-documenter`
-- **`parts`**: map of **stable** `SPR-####` → `{ leaf, section_id, … }`
+- **`parts`**: map of **stable** `SPR-####` → `{ leaf, section_id, created_at }` — **no chip on the part**
 - **`sections`**: map of `sec-####` → `{ label, part_ids: [] }` (order in bucket)
-- **`section_order`**: column order for kanban
+- **`section_order`**: outline order of sections (intake ≠ outline)
+- **`tps_chips`**: **document-level** list of chip_ids used in production (deduped) — **v0.1**
 - Resort updates **membership + order only** — **never renames part codes**
 
-### v0 surface (matches Figma + Hands)
+### Surface map
 
 1. Empty: no document selected  
-2. Document: section rail + **inline composer at top of bucket** + stack below  
-3. Resort kanban: drag cards between section columns
+2. Document: section rail + **inline composer at top of bucket** + stack below · section ▲▼  
+3. Resort kanban: drag frags · section ▲▼ on columns  
+4. Print / reader (Ctrl+3): TOC + full outline — **not** a TPS billboard  
+5. **About this document…** (menu): meta + **tps_chips** list — knowledge only
 
 #### Product law · we are not DATBOX (Hands / -dw)
 
@@ -190,6 +225,8 @@ DATBOX energy optional. **Boring correctness preferred.**
 | Reorder + move between sections (**kanban**) | “AI writes the wiki” |
 | House format on disk | Baking romance chrome into Big Box |
 | One leaf = one sopr | “Additional notes” second field muddying the act |
+| Doc-level `tps_chips` (deduped chip_id) | Per-frag source_chip / ven / “was SPR-x from chip y?” drama |
+| About document (menu) for chip list | Front-loading chips on compose / print surface |
 
 ---
 
@@ -208,16 +245,17 @@ DATBOX energy optional. **Boring correctness preferred.**
 - SKU: **sopr Documenter**  
 - Job: frags → bins → **resort** → outline → docs  
 - **Part codes stable** — section not baked into id (old failure, avoid)  
-- **Machina / glass** — future cord; docs emerge from glassboxes  
+- **Machina / glass** — doc-level `tps_chips` only; no per-frag chip; no ven  
+- **About document** — menu knowledge drawer; not production chrome  
 - **Boring over DATBOX cosplay** — real software, not toy bags by default  
 - **Add = inline top of bucket** — composer always at top of active section; stored frags stack below; stay on page  
 - **No notes field** — note? another sopr  
-- **Resort kanban** — loved / locked  
-- Scaffold: **ON · v0 shipped 2026-07-25**  
+- **Resort kanban** — loved / locked · section outline reorder too  
+- Scaffold: **v0 shipped** · **v0.1 live** — `tps_chips` + About doc + Machina peek on store
 
 *Big Box Company · sopr Documenter · Internal product page*  
 *Daniel Wake · “Please put it in the doc.”*  
-*Hands memos filed · v0 fluorescent · 2026-07-25*
+*Hands memos filed · v0 fluorescent · TPS chip law 2026-07-25*
 
 
 ## [ sign off /dw @ 2026-07-25 2026-07-25 ]

@@ -11,7 +11,109 @@
     lastStored: null,
   };
 
+  /** Time Machina cord — peek only. Offline = silent skip. */
+  const MACHINA_CORD =
+    (typeof window !== "undefined" && window.MACHINA_CORD) ||
+    "http://127.0.0.1:43111";
+
   const $ = (id) => document.getElementById(id);
+
+  /**
+   * Peek Machina session.now — chip for document tps_chips bin.
+   * No vencodes. Returns null if offline / pocket off / no chip.
+   */
+  async function peekMachinaCord() {
+    try {
+      const res = await fetch(MACHINA_CORD + "/api/cord/now", {
+        method: "GET",
+        mode: "cors",
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (!data || data.pocket_on === false) return null;
+      const cur = data.current || {};
+      const chip_id = (cur.chip_id || data.chip_id || "").trim();
+      if (!chip_id) return null;
+      return {
+        chip_id: chip_id,
+        export_id: (data.export_id || cur.export_id || "").trim(),
+      };
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  async function stampChipOnDoc(peek) {
+    if (!state.slug) return { ok: false, reason: "no doc" };
+    let p = peek;
+    if (!p) p = await peekMachinaCord();
+    if (!p || !p.chip_id) return { ok: false, reason: "no chip / machina offline" };
+    try {
+      const data = await api(
+        "POST",
+        "/api/docs/" + encodeURIComponent(state.slug) + "/tps-chips",
+        { chip_id: p.chip_id, export_id: p.export_id || "" }
+      );
+      state.doc = data.doc;
+      return { ok: true, chip: data.tps_chip };
+    } catch (e) {
+      return { ok: false, reason: e.message };
+    }
+  }
+
+  function openAboutDoc() {
+    if (!state.doc) return;
+    const backdrop = $("about-backdrop");
+    const body = $("about-body");
+    const doc = state.doc;
+    const chips = Array.isArray(doc.tps_chips) ? doc.tps_chips : [];
+    const parts = Object.keys(doc.parts || {}).length;
+    const sections = Object.keys(doc.sections || {}).length;
+
+    let chipsHtml = "";
+    if (!chips.length) {
+      chipsHtml =
+        '<p class="about-empty">No TPS chips recorded yet. Store a fragment while Machina pocket is on, or Stamp current TPS chip.</p>';
+    } else {
+      chipsHtml = '<ul class="about-chips">';
+      for (const c of chips) {
+        chipsHtml +=
+          "<li><span>" +
+          escapeHtml(c.chip_id || "") +
+          "</span>" +
+          (c.export_id
+            ? '<span class="chip-export">export ' +
+              escapeHtml(c.export_id) +
+              "</span>"
+            : "") +
+          "</li>";
+      }
+      chipsHtml += "</ul>";
+    }
+
+    body.innerHTML =
+      '<div class="meta-row"><span class="meta-k">Name</span><span class="meta-v">' +
+      escapeHtml(doc.doc_name || "") +
+      "</span></div>" +
+      '<div class="meta-row"><span class="meta-k">Slug</span><span class="meta-v">' +
+      escapeHtml(doc.slug || state.slug || "") +
+      ".sopr</span></div>" +
+      '<div class="meta-row"><span class="meta-k">Parts</span><span class="meta-v">' +
+      parts +
+      "</span></div>" +
+      '<div class="meta-row"><span class="meta-k">Sections</span><span class="meta-v">' +
+      sections +
+      "</span></div>" +
+      "<h3>TPS CHIPS USED IN PRODUCTION</h3>" +
+      chipsHtml +
+      '<p class="muted small" style="margin-top:12px">Document-level only. No vencodes. No per-frag chip drama. Open the chip in Machina if you need the message.</p>';
+
+    backdrop.hidden = false;
+  }
+
+  function closeAboutDoc() {
+    $("about-backdrop").hidden = true;
+  }
 
   async function api(method, path, body) {
     const opts = { method, headers: {} };
@@ -145,23 +247,35 @@
       setStatus("Empty leaf — nothing stored.");
       return;
     }
+    // Listener: peek Machina once; chip goes on the *document* bin only
+    const peek = await peekMachinaCord();
+    const body = {
+      section_id: state.activeSectionId,
+      leaf: leaf,
+    };
+    if (peek && peek.chip_id) {
+      body.chip_id = peek.chip_id;
+      body.export_id = peek.export_id || "";
+    }
     try {
       const data = await api(
         "POST",
         "/api/docs/" + encodeURIComponent(state.slug) + "/parts",
-        {
-          section_id: state.activeSectionId,
-          leaf: leaf,
-        }
+        body
       );
       state.doc = data.doc;
       state.lastStored = data.part.part_code;
       $("composer-leaf").value = "";
       $("composer-leaf").focus();
       render();
-      setStatus(
-        "Stored " + data.part.part_code + " · composer stays · stack grew"
-      );
+      let msg =
+        "Stored " + data.part.part_code + " · composer stays · stack grew";
+      if (data.tps_chip && data.tps_chip.chip_id) {
+        msg += " · doc chip " + data.tps_chip.chip_id;
+      } else if (!peek) {
+        msg += " · (no Machina chip)";
+      }
+      setStatus(msg);
     } catch (e) {
       alert(e.message);
     }
@@ -288,6 +402,17 @@
         return moveSection(state.activeSectionId, -1);
       case "section-down":
         return moveSection(state.activeSectionId, 1);
+      case "about-doc":
+        return openAboutDoc();
+      case "stamp-chip":
+        return stampChipOnDoc().then((r) => {
+          if (r.ok) {
+            setStatus("Stamped chip " + (r.chip && r.chip.chip_id));
+            if (!$("about-backdrop").hidden) openAboutDoc();
+          } else {
+            setStatus("Stamp skipped: " + (r.reason || "unknown"));
+          }
+        });
       case "help-keys":
         alert(
           "sopr Documenter · keyboard\n\n" +
@@ -296,12 +421,13 @@
             "F5              Refresh document list\n" +
             "Ctrl+Shift+S    New section\n" +
             "Ctrl+L          Focus new fragment composer\n" +
-            "Ctrl+Enter      Store fragment\n" +
+            "Ctrl+Enter      Store fragment (+ doc chip if Machina on)\n" +
             "Ctrl+1          Document mode (edit)\n" +
             "Ctrl+2          Resort (kanban)\n" +
             "Ctrl+3          Print / reader (TOC + full doc)\n" +
             "Ctrl+↑ / Ctrl+↓ Move active section in outline\n" +
-            "Esc             Close menus"
+            "Esc             Close menus / About\n\n" +
+            "Document → About this document… · TPS chips (knowledge only)"
         );
         return;
       case "help-about":
@@ -729,6 +855,16 @@
   document.addEventListener("click", () => closeMenus());
   $("menubar").addEventListener("click", (e) => e.stopPropagation());
 
+  $("about-close").addEventListener("click", closeAboutDoc);
+  $("about-backdrop").addEventListener("click", (e) => {
+    if (e.target === $("about-backdrop")) closeAboutDoc();
+  });
+  $("about-stamp").addEventListener("click", () => runCmd("stamp-chip"));
+  document.querySelector(".about-dialog") &&
+    document
+      .querySelector(".about-dialog")
+      .addEventListener("click", (e) => e.stopPropagation());
+
   $("doc-select").addEventListener("change", (e) => {
     openDoc(e.target.value).catch((err) => alert(err.message));
   });
@@ -753,6 +889,7 @@
 
     if (e.key === "Escape") {
       closeMenus();
+      if (!$("about-backdrop").hidden) closeAboutDoc();
       return;
     }
     if (e.key === "F5") {

@@ -51,6 +51,13 @@
             <button type="button" class="menu-item" data-cmd="store" data-need-doc>
               <span>Store fragment</span><kbd>Ctrl+Enter</kbd>
             </button>
+            <div class="menu-sep"></div>
+            <button type="button" class="menu-item" data-cmd="about-doc" data-need-doc>
+              <span>About this document…</span>
+            </button>
+            <button type="button" class="menu-item" data-cmd="stamp-chip" data-need-doc>
+              <span>Stamp current TPS chip</span>
+            </button>
           </div>
         </div>
         <div class="menu">
@@ -185,6 +192,31 @@
       </div>
 
       <footer class="status" id="status">Big Box Company · sopr Documenter</footer>
+
+      <!-- About document (knowledge only — not production chrome) -->
+      <div id="about-backdrop" class="about-backdrop" hidden>
+        <div
+          class="about-dialog"
+          role="dialog"
+          aria-labelledby="about-title"
+          aria-modal="true"
+        >
+          <div class="about-head">
+            <h2 id="about-title">About this document</h2>
+            <button type="button" class="btn" id="about-close">Close</button>
+          </div>
+          <div class="about-body" id="about-body"></div>
+          <div class="about-foot">
+            <button type="button" class="btn" id="about-stamp">
+              Stamp current TPS chip
+            </button>
+            <span class="muted small"
+              >Chips used in production · no vencodes · not on the compose
+              surface</span
+            >
+          </div>
+        </div>
+      </div>
     </div>
     <script src="app.js"></script>
   </body>
