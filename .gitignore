@@ -1,0 +1,14 @@
+# Runtime / agent noise
+**/__pycache__/
+*.py[cod]
+*.log
+desk-server.log
+*.err
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Local env
+.venv/
+venv/

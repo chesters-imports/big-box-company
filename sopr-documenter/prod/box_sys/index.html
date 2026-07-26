@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>sopr Documenter</title>
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="app-chrome" data-deck-chrome>
+        <span class="chip" data-deck-menu title="Deck Host menu"
+          >sopr<strong>DOC</strong></span
+        >
+        <span class="chrome-meta" id="chrome-meta" data-deck-drag
+          >Big Box Company · no document selected</span
+        >
+        <div class="deck-win" data-deck-window-controls aria-label="Window"></div>
+      </header>
+
+      <!-- Classic window menu bar (the romance) -->
+      <nav class="menubar" id="menubar" aria-label="Application menu">
+        <div class="menu">
+          <button type="button" class="menu-top" data-menu="file">File</button>
+          <div class="menu-drop" id="menu-file" hidden>
+            <button type="button" class="menu-item" data-cmd="new-doc">
+              <span>New document…</span><kbd>Ctrl+N</kbd>
+            </button>
+            <button type="button" class="menu-item" data-cmd="open-doc">
+              <span>Open document…</span><kbd>Ctrl+O</kbd>
+            </button>
+            <button type="button" class="menu-item" data-cmd="refresh-list">
+              <span>Refresh list</span><kbd>F5</kbd>
+            </button>
+            <div class="menu-sep"></div>
+            <div class="menu-label">Recent / available</div>
+            <div id="menu-open-list" class="menu-open-list"></div>
+          </div>
+        </div>
+        <div class="menu">
+          <button type="button" class="menu-top" data-menu="document">
+            Document
+          </button>
+          <div class="menu-drop" id="menu-document" hidden>
+            <button type="button" class="menu-item" data-cmd="new-section" data-need-doc>
+              <span>New section…</span><kbd>Ctrl+Shift+S</kbd>
+            </button>
+            <button type="button" class="menu-item" data-cmd="focus-composer" data-need-doc>
+              <span>Focus new fragment</span><kbd>Ctrl+L</kbd>
+            </button>
+            <button type="button" class="menu-item" data-cmd="store" data-need-doc>
+              <span>Store fragment</span><kbd>Ctrl+Enter</kbd>
+            </button>
+          </div>
+        </div>
+        <div class="menu">
+          <button type="button" class="menu-top" data-menu="view">View</button>
+          <div class="menu-drop" id="menu-view" hidden>
+            <button type="button" class="menu-item" data-cmd="view-doc" data-need-doc>
+              <span>Document mode</span><kbd>Ctrl+1</kbd>
+            </button>
+            <button type="button" class="menu-item" data-cmd="view-kanban" data-need-doc>
+              <span>Resort (kanban)</span><kbd>Ctrl+2</kbd>
+            </button>
+            <button type="button" class="menu-item" data-cmd="view-print" data-need-doc>
+              <span>Print / reader</span><kbd>Ctrl+3</kbd>
+            </button>
+            <div class="menu-sep"></div>
+            <button type="button" class="menu-item" data-cmd="section-up" data-need-doc>
+              <span>Move section up</span><kbd>Ctrl+↑</kbd>
+            </button>
+            <button type="button" class="menu-item" data-cmd="section-down" data-need-doc>
+              <span>Move section down</span><kbd>Ctrl+↓</kbd>
+            </button>
+          </div>
+        </div>
+        <div class="menu">
+          <button type="button" class="menu-top" data-menu="help">Help</button>
+          <div class="menu-drop" id="menu-help" hidden>
+            <button type="button" class="menu-item" data-cmd="help-keys">
+              <span>Keyboard shortcuts…</span>
+            </button>
+            <button type="button" class="menu-item" data-cmd="help-about">
+              <span>About sopr Documenter</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Thin document strip (not a second toolbar of chaos) -->
+      <div class="docstrip" id="docstrip">
+        <span class="muted">Document:</span>
+        <select id="doc-select" aria-label="Open document">
+          <option value="">— select —</option>
+        </select>
+        <span class="docstrip-hint muted small" id="docstrip-hint"
+          >File · Document · View · Help</span
+        >
+      </div>
+
+      <!-- EMPTY -->
+      <div id="view-empty" class="view-empty">
+        <div class="empty-card">
+          <h1>No document selected</h1>
+          <p class="muted">Please select a document.</p>
+          <p class="muted small">
+            Or create one. Big Box Company does not care which, as long as
+            something is filed.
+          </p>
+          <div class="empty-actions">
+            <button type="button" class="btn" id="btn-empty-refresh">
+              Refresh list
+            </button>
+            <button type="button" class="btn primary" id="btn-empty-new">
+              New document
+            </button>
+          </div>
+          <p class="muted small foot">
+            Menu: <strong>File → New document</strong> · Ctrl+N
+          </p>
+          <p class="muted small foot">“Please put it in the doc.” — Daniel Wake</p>
+        </div>
+      </div>
+
+      <!-- DOCUMENT VIEW -->
+      <div id="view-doc" class="view-doc" hidden>
+        <aside class="sections-rail" aria-label="Sections">
+          <div class="rail-head">
+            <span>SECTIONS</span>
+            <span class="muted small" title="Outline order — not intake order"
+              >↑↓ reorder</span
+            >
+          </div>
+          <div id="section-list" class="rail-body"></div>
+        </aside>
+        <main class="bucket" aria-label="Section bucket">
+          <div class="bucket-head">
+            <span id="bucket-title">SECTION</span>
+            <span class="muted small" id="bucket-hint"
+              >composer top · rows drop below</span
+            >
+          </div>
+          <div class="composer" id="composer">
+            <div class="composer-label">NEW FRAGMENT</div>
+            <textarea
+              id="composer-leaf"
+              rows="3"
+              placeholder="Type the leaf here. Store → drops below. Composer stays. (Ctrl+Enter)"
+            ></textarea>
+            <div class="composer-actions">
+              <button type="button" class="btn primary" id="btn-store">
+                Store fragment
+              </button>
+              <span class="muted small"
+                >no notes field · note? another sopr · part code on store</span
+              >
+            </div>
+          </div>
+          <div id="part-stack" class="part-stack"></div>
+        </main>
+      </div>
+
+      <!-- KANBAN RESORT -->
+      <div id="view-kanban" class="view-kanban" hidden>
+        <div class="kanban-banner">
+          THIS IS THE PRODUCT · drag cards between columns · part codes never
+          rename · column headers: ↑↓ reorder sections · Ctrl+3 print view
+        </div>
+        <div id="kanban-board" class="kanban-board"></div>
+        <div class="kanban-foot muted small">
+          Frags: drag between columns. Sections: use ↑↓ on column heads (intake
+          order ≠ outline). SPR-#### never renames.
+        </div>
+      </div>
+
+      <!-- PRINT / READER (Ctrl+3) -->
+      <div id="view-print" class="view-print" hidden>
+        <aside class="print-toc" aria-label="Table of contents">
+          <div class="rail-head">CONTENTS</div>
+          <div id="print-toc" class="rail-body"></div>
+        </aside>
+        <article class="print-page" id="print-page" aria-label="Document printout">
+          <!-- filled by app.js -->
+        </article>
+      </div>
+
+      <footer class="status" id="status">Big Box Company · sopr Documenter</footer>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>

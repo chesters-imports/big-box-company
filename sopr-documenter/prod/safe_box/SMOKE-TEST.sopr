@@ -1,0 +1,57 @@
+{
+  "house": "BIGBOX",
+  "product": "sopr-documenter",
+  "version": 1,
+  "doc_name": "SMOKE TEST",
+  "slug": "SMOKE-TEST",
+  "next_part": 4,
+  "next_section": 4,
+  "section_order": [
+    "sec-0001",
+    "sec-0002",
+    "sec-0003"
+  ],
+  "sections": {
+    "sec-0001": {
+      "section_id": "sec-0001",
+      "label": "Why we say export",
+      "part_ids": [
+        "SPR-0002"
+      ]
+    },
+    "sec-0002": {
+      "section_id": "sec-0002",
+      "label": "Glass to paper",
+      "part_ids": [
+        "SPR-0003",
+        "SPR-0001"
+      ]
+    },
+    "sec-0003": {
+      "section_id": "sec-0003",
+      "label": "Loose / unbinned",
+      "part_ids": []
+    }
+  },
+  "parts": {
+    "SPR-0001": {
+      "part_code": "SPR-0001",
+      "leaf": "export is seal",
+      "section_id": "sec-0002",
+      "created_at": 1785027396.0824735
+    },
+    "SPR-0002": {
+      "part_code": "SPR-0002",
+      "leaf": "glassbox black box",
+      "section_id": "sec-0001",
+      "created_at": 1785027396.0824735
+    },
+    "SPR-0003": {
+      "part_code": "SPR-0003",
+      "leaf": "kanban resort",
+      "section_id": "sec-0002",
+      "created_at": 1785027396.0824735
+    }
+  },
+  "updated_at": 1785027959.9082367
+}
