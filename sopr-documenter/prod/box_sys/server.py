@@ -290,11 +290,18 @@ class Handler(SimpleHTTPRequestHandler):
             else:
                 sid = find_or_create_section(doc, label or "Loose / unbinned")
             code = mint_part_code(doc)
+            # as_pre: print/compose as <pre> (ASCII diagrams, code layouts)
+            as_pre = bool(
+                body.get("as_pre")
+                or body.get("pre")
+                or body.get("as_code")
+            )
             part = {
                 "part_code": code,
                 "leaf": leaf,
                 "section_id": sid,
                 "created_at": time.time(),
+                "as_pre": as_pre,
             }
             doc.setdefault("parts", {})[code] = part
             sec = doc["sections"][sid]
@@ -427,6 +434,14 @@ class Handler(SimpleHTTPRequestHandler):
             leaf = body.get("leaf")
             if leaf is not None:
                 parts[code]["leaf"] = str(leaf)
+            if "as_pre" in body or "pre" in body or "as_code" in body:
+                parts[code]["as_pre"] = bool(
+                    body.get("as_pre")
+                    if "as_pre" in body
+                    else body.get("pre")
+                    if "pre" in body
+                    else body.get("as_code")
+                )
             # never rename part_code
             save_doc(doc)
             return self._json(200, {"ok": True, "part": parts[code], "doc": doc})

@@ -249,9 +249,13 @@
     }
     // Listener: peek Machina once; chip goes on the *document* bin only
     const peek = await peekMachinaCord();
+    const asPre = !!(
+      $("composer-as-pre") && $("composer-as-pre").checked
+    );
     const body = {
       section_id: state.activeSectionId,
       leaf: leaf,
+      as_pre: asPre,
     };
     if (peek && peek.chip_id) {
       body.chip_id = peek.chip_id;
@@ -266,10 +270,12 @@
       state.doc = data.doc;
       state.lastStored = data.part.part_code;
       $("composer-leaf").value = "";
+      // keep as_pre tick if you are stacking diagrams
       $("composer-leaf").focus();
       render();
       let msg =
         "Stored " + data.part.part_code + " · composer stays · stack grew";
+      if (asPre) msg += " · pre";
       if (data.tps_chip && data.tps_chip.chip_id) {
         msg += " · doc chip " + data.tps_chip.chip_id;
       } else if (!peek) {
@@ -279,6 +285,38 @@
     } catch (e) {
       alert(e.message);
     }
+  }
+
+  async function togglePartAsPre(partCode) {
+    if (!state.doc || !state.slug || !partCode) return;
+    const p = (state.doc.parts || {})[partCode];
+    if (!p) return;
+    const next = !p.as_pre;
+    try {
+      const data = await api(
+        "PUT",
+        "/api/docs/" +
+          encodeURIComponent(state.slug) +
+          "/parts/" +
+          encodeURIComponent(partCode),
+        { as_pre: next }
+      );
+      state.doc = data.doc;
+      render();
+      setStatus(
+        partCode + (next ? " · display as pre" : " · normal text")
+      );
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  function leafHtml(p) {
+    const text = escapeHtml(p.leaf || "");
+    if (p.as_pre) {
+      return '<pre class="part-leaf-pre">' + text + "</pre>";
+    }
+    return '<div class="part-leaf">' + text + "</div>";
   }
 
   function showView(name) {
@@ -575,16 +613,26 @@
         '<span class="part-code">' +
         escapeHtml(code) +
         "</span>" +
+        (p.as_pre ? '<span class="tag-pre">pre</span>' : "") +
         (code === state.lastStored
           ? '<span class="tag-new">↓ just dropped under composer</span>'
           : "") +
+        '<button type="button" class="pre-toggle" data-part="' +
+        escapeHtml(code) +
+        '">' +
+        (p.as_pre ? "as text" : "as pre") +
+        "</button>" +
         "</div>" +
-        '<div class="part-leaf">' +
-        escapeHtml(p.leaf || "") +
-        "</div>" +
+        leafHtml(p) +
         "</div>";
       stack.appendChild(row);
     }
+    stack.querySelectorAll(".pre-toggle").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        togglePartAsPre(btn.getAttribute("data-part"));
+      });
+    });
   }
 
   function renderKanban() {
@@ -759,12 +807,21 @@
           const p = parts[code];
           if (!p) continue;
           const frag = document.createElement("div");
-          frag.className = "print-frag";
-          frag.innerHTML =
-            '<span class="frag-code">' +
-            escapeHtml(code) +
-            "</span>" +
-            escapeHtml(p.leaf || "");
+          frag.className = "print-frag" + (p.as_pre ? " as-pre" : "");
+          if (p.as_pre) {
+            frag.innerHTML =
+              '<span class="frag-code">' +
+              escapeHtml(code) +
+              " · pre</span><pre class=\"part-leaf-pre\">" +
+              escapeHtml(p.leaf || "") +
+              "</pre>";
+          } else {
+            frag.innerHTML =
+              '<span class="frag-code">' +
+              escapeHtml(code) +
+              "</span>" +
+              escapeHtml(p.leaf || "");
+          }
           block.appendChild(frag);
         }
       }

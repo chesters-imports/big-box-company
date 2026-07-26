@@ -189,7 +189,8 @@ sopr-documenter/
 Boring specialized file (not DATBOX cosplay):
 
 - `house: BIGBOX` · `product: sopr-documenter`
-- **`parts`**: map of **stable** `SPR-####` → `{ leaf, section_id, created_at }` — **no chip on the part**
+- **`parts`**: map of **stable** `SPR-####` → `{ leaf, section_id, created_at, as_pre? }` — **no chip on the part**  
+  - `as_pre: true` → compose + print as monospace `<pre>` (ASCII diagrams / layouts / code). Tick on composer; toggle later with “as pre / as text”.
 - **`sections`**: map of `sec-####` → `{ label, part_ids: [] }` (order in bucket)
 - **`section_order`**: outline order of sections (intake ≠ outline)
 - **`tps_chips`**: **document-level** list of chip_ids used in production (deduped) — **v0.1**
