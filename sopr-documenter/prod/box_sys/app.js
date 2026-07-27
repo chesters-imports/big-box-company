@@ -236,6 +236,136 @@
 
   const $ = (id) => document.getElementById(id);
 
+  /** In-app dialogs — never window.alert / confirm / prompt (breaks desk immersion). */
+  let _deskResolve = null;
+
+  let _deskMode = "alert";
+
+  function _deskClose(result) {
+    const bd = $("desk-dialog-backdrop");
+    if (bd) bd.hidden = true;
+    const r = _deskResolve;
+    _deskResolve = null;
+    _deskMode = "alert";
+    if (r) r(result);
+  }
+
+  function _deskAccept() {
+    if (_deskMode === "confirm") {
+      _deskClose(true);
+    } else if (_deskMode === "prompt") {
+      const input = $("desk-dialog-input");
+      _deskClose(input ? input.value : "");
+    } else if (_deskMode === "prompt-area") {
+      const area = $("desk-dialog-textarea");
+      _deskClose(area ? area.value : "");
+    } else {
+      _deskClose(undefined);
+    }
+  }
+
+  function _deskCancel() {
+    if (_deskMode === "confirm") _deskClose(false);
+    else if (_deskMode === "alert") _deskClose(undefined);
+    else _deskClose(null);
+  }
+
+  function _deskOpen(opts) {
+    return new Promise((resolve) => {
+      if (_deskResolve) {
+        // stack-safe: close prior with cancel
+        _deskCancel();
+      }
+      _deskMode = opts.mode || "alert";
+      _deskResolve = resolve;
+      const bd = $("desk-dialog-backdrop");
+      const title = $("desk-dialog-title");
+      const msg = $("desk-dialog-message");
+      const input = $("desk-dialog-input");
+      const area = $("desk-dialog-textarea");
+      const cancel = $("desk-dialog-cancel");
+      const ok = $("desk-dialog-ok");
+      if (!bd || !msg || !ok) {
+        resolve(
+          opts.mode === "confirm"
+            ? false
+            : opts.mode === "alert"
+              ? undefined
+              : null
+        );
+        return;
+      }
+      title.textContent = opts.title || "sopr Documenter";
+      msg.textContent = opts.message || "";
+      msg.hidden = !opts.message;
+      input.hidden = opts.mode !== "prompt";
+      area.hidden = opts.mode !== "prompt-area";
+      cancel.hidden = opts.mode === "alert";
+      ok.textContent = opts.okLabel || "OK";
+      cancel.textContent = opts.cancelLabel || "Cancel";
+      if (opts.mode === "prompt") {
+        input.value = opts.defaultValue != null ? String(opts.defaultValue) : "";
+        input.placeholder = opts.placeholder || "";
+      }
+      if (opts.mode === "prompt-area") {
+        area.value = opts.defaultValue != null ? String(opts.defaultValue) : "";
+        area.placeholder = opts.placeholder || "";
+      }
+      bd.hidden = false;
+      setTimeout(() => {
+        if (opts.mode === "prompt") {
+          input.focus();
+          input.select();
+        } else if (opts.mode === "prompt-area") {
+          area.focus();
+        } else {
+          ok.focus();
+        }
+      }, 0);
+    });
+  }
+
+  function deskAlert(message, title) {
+    return _deskOpen({
+      mode: "alert",
+      message: message,
+      title: title || "sopr Documenter",
+      okLabel: "OK",
+    });
+  }
+
+  function deskConfirm(message, title) {
+    return _deskOpen({
+      mode: "confirm",
+      message: message,
+      title: title || "Confirm",
+      okLabel: "OK",
+      cancelLabel: "Cancel",
+    }).then((v) => v === true);
+  }
+
+  function deskPrompt(message, defaultValue, title) {
+    return _deskOpen({
+      mode: "prompt",
+      message: message,
+      defaultValue: defaultValue,
+      title: title || "Input",
+      okLabel: "OK",
+      cancelLabel: "Cancel",
+    });
+  }
+
+  function deskPromptArea(message, defaultValue, title) {
+    return _deskOpen({
+      mode: "prompt-area",
+      message: message,
+      defaultValue: defaultValue,
+      title: title || "Edit",
+      okLabel: "OK",
+      cancelLabel: "Cancel",
+    });
+  }
+
   /**
    * Peek Machina session.now — chip for document tps_chips bin.
    * No vencodes. Returns null if offline / pocket off / no chip.
@@ -472,8 +602,8 @@
   async function newDoc(folder) {
     const place =
       folder != null ? folder : state.vault.open ? state.vault.folder : "";
-    const name = window.prompt("Document name:", "PLATFORM-STORY");
-    if (!name || !name.trim()) return;
+    const name = await deskPrompt("Document name:", "PLATFORM-STORY", "New document");
+    if (name === null || !name.trim()) return;
     try {
       const data = await api("POST", "/api/docs", {
         doc_name: name.trim(),
@@ -488,7 +618,7 @@
           (place ? " in " + place : "")
       );
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
@@ -662,14 +792,18 @@
   }
 
   async function vaultNewFolder() {
-    const name = window.prompt("Folder name (under safe_box):", "company");
-    if (!name || !name.trim()) return;
+    const name = await deskPrompt(
+      "Folder name (under safe_box):",
+      "company",
+      "New folder"
+    );
+    if (name === null || !name.trim()) return;
     try {
       await api("POST", "/api/vault/folders", { name: name.trim() });
       await loadVaultFolder(state.vault.folder);
       setStatus("Folder “" + name.trim() + "” created");
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
@@ -677,7 +811,7 @@
     const sel = state.vault.selected;
     if (!sel) return;
     if (sel.kind === "folder") {
-      const next = window.prompt("Rename folder:", sel.id);
+      const next = await deskPrompt("Rename folder:", sel.id, "Rename folder");
       if (next === null || !next.trim()) return;
       try {
         await api("POST", "/api/vault/rename-folder", {
@@ -688,18 +822,20 @@
         await loadVaultFolder(state.vault.folder);
         setStatus("Folder renamed");
       } catch (e) {
-        alert(e.message);
+        deskAlert(e.message);
       }
       return;
     }
-    const name = window.prompt(
+    const name = await deskPrompt(
       "Display name:",
-      sel.doc_name || sel.slug
+      sel.doc_name || sel.slug,
+      "Rename document"
     );
     if (name === null) return;
-    const slug = window.prompt(
+    const slug = await deskPrompt(
       "File slug (filename without .sopr):",
-      sel.slug
+      sel.slug,
+      "Rename document"
     );
     if (slug === null) return;
     try {
@@ -717,16 +853,17 @@
       await loadVaultFolder(state.vault.folder);
       setStatus("Renamed → " + (data.path || data.doc.slug));
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
   async function vaultMove() {
     const sel = state.vault.selected;
     if (!sel || sel.kind !== "file") return;
-    const dest = window.prompt(
+    const dest = await deskPrompt(
       "Move to folder (empty = vault root):",
-      state.vault.folder || ""
+      state.vault.folder || "",
+      "Move document"
     );
     if (dest === null) return;
     try {
@@ -743,7 +880,7 @@
       await loadVaultFolder(state.vault.folder);
       setStatus("Moved " + sel.slug + ".sopr");
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
@@ -752,11 +889,12 @@
     if (!sel) return;
     if (sel.kind === "folder") {
       if (
-        !window.confirm(
+        !(await deskConfirm(
           "Delete empty folder “" +
             sel.id +
-            "”?\n\nFolder must be empty (move documents first)."
-        )
+            "”?\n\nFolder must be empty (move documents first).",
+          "Delete folder"
+        ))
       )
         return;
       try {
@@ -765,18 +903,19 @@
         await loadVaultFolder(state.vault.folder);
         setStatus("Folder deleted");
       } catch (e) {
-        alert(e.message);
+        deskAlert(e.message);
       }
       return;
     }
     if (
-      !window.confirm(
+      !(await deskConfirm(
         "Delete document “" +
           (sel.doc_name || sel.slug) +
           "”?\n\nRemoves " +
           (sel.path || sel.slug + ".sopr") +
-          " from the vault."
-      )
+          " from the vault.",
+        "Delete document"
+      ))
     )
       return;
     try {
@@ -792,14 +931,14 @@
       await loadVaultFolder(state.vault.folder);
       setStatus("Deleted " + sel.slug);
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
   async function newSection() {
     if (!state.doc) return;
-    const label = window.prompt("Section heading:", "");
-    if (!label || !label.trim()) return;
+    const label = await deskPrompt("Section heading:", "", "New section");
+    if (label === null || !label.trim()) return;
     try {
       const data = await api(
         "POST",
@@ -812,7 +951,7 @@
       render();
       $("composer-leaf").focus();
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
@@ -903,7 +1042,7 @@
       }
       setStatus(msg);
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
@@ -927,7 +1066,7 @@
         partCode + (next ? " · display as pre" : " · normal text")
       );
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
@@ -941,9 +1080,10 @@
       return;
     }
     if (block === "image") {
-      const next = window.prompt(
+      const next = await deskPrompt(
         "Edit caption for " + partCode + ":",
-        p.leaf || ""
+        p.leaf || "",
+        "Edit caption"
       );
       if (next === null) return;
       try {
@@ -959,11 +1099,15 @@
         render();
         setStatus("Caption updated " + partCode);
       } catch (e) {
-        alert(e.message);
+        deskAlert(e.message);
       }
       return;
     }
-    const next = window.prompt("Edit fragment " + partCode + ":", p.leaf || "");
+    const next = await deskPromptArea(
+      "Edit fragment " + partCode + ":",
+      p.leaf || "",
+      "Edit fragment"
+    );
     if (next === null) return;
     try {
       const data = await api(
@@ -978,7 +1122,7 @@
       render();
       setStatus("Edited " + partCode);
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
@@ -1026,7 +1170,7 @@
     const grid = $("table-edit-grid");
     const table = readGridFrom(grid, hdr && hdr.checked);
     if (!tableHasContent(table)) {
-      alert("Table has no cell content.");
+      deskAlert("Table has no cell content.");
       return;
     }
     const note = ($("table-edit-note") && $("table-edit-note").value) || "";
@@ -1044,18 +1188,19 @@
       render();
       setStatus("Saved table " + data.part.part_code);
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
   async function deletePart(partCode) {
     if (!state.doc || !state.slug || !partCode) return;
     if (
-      !window.confirm(
+      !(await deskConfirm(
         "Delete " +
           partCode +
-          "?\n\nPart code is stable history — it will not be reused. This removes the fragment from the document."
-      )
+          "?\n\nPart code is stable history — it will not be reused. This removes the fragment from the document.",
+        "Delete fragment"
+      ))
     ) {
       return;
     }
@@ -1072,15 +1217,16 @@
       render();
       setStatus("Deleted " + partCode);
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
   async function renameDoc() {
     if (!state.doc || !state.slug) return;
-    const next = window.prompt(
+    const next = await deskPrompt(
       "Document display name:",
-      state.doc.doc_name || state.slug
+      state.doc.doc_name || state.slug,
+      "Rename document"
     );
     if (next === null || !next.trim()) return;
     try {
@@ -1094,7 +1240,7 @@
       render();
       setStatus("Renamed document · slug " + state.slug + ".sopr unchanged");
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
@@ -1102,13 +1248,14 @@
     if (!state.slug) return;
     const name = (state.doc && state.doc.doc_name) || state.slug;
     if (
-      !window.confirm(
+      !(await deskConfirm(
         "Delete document “" +
           name +
           "”?\n\nThis permanently removes " +
           state.slug +
-          ".sopr from safe_box."
-      )
+          ".sopr from safe_box.",
+        "Delete document"
+      ))
     ) {
       return;
     }
@@ -1122,7 +1269,7 @@
       render();
       setStatus("Deleted " + name);
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
@@ -1200,7 +1347,7 @@
       render();
       setStatus("Section outline reordered (intake ≠ outline)");
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
@@ -1236,13 +1383,13 @@
       case "new-doc":
         return newDoc();
       case "open-doc":
-        return openVault("open").catch((e) => alert(e.message));
+        return openVault("open").catch((e) => deskAlert(e.message));
       case "vault-manage":
-        return openVault("manage").catch((e) => alert(e.message));
+        return openVault("manage").catch((e) => deskAlert(e.message));
       case "refresh-list":
         return refreshDocList()
           .then(() => setStatus("List refreshed"))
-          .catch((e) => alert(e.message));
+          .catch((e) => deskAlert(e.message));
       case "new-section":
         return newSection();
       case "rename-doc":
@@ -1277,12 +1424,12 @@
           }
         });
       case "help-keys":
-        alert(
+        deskAlert(
           "sopr Documenter · keyboard\n\n" +
             "Ctrl+N          New document\n" +
             "Ctrl+O          Open vault file manager\n" +
             "F5              Refresh document list\n" +
-            "Ctrl+Shift+S    New section\n" +
+            "Ctrl+Shift+N    New section\n" +
             "Ctrl+L          Focus new fragment composer\n" +
             "Ctrl+Enter      Store fragment (+ doc chip if Machina on)\n" +
             "Ctrl+1          Document mode (edit)\n" +
@@ -1295,7 +1442,7 @@
         );
         return;
       case "help-about":
-        alert(
+        deskAlert(
           "sopr Documenter\nBig Box Company\n\n" +
             "Documentation from fragmented thinking.\n" +
             "Section bins · stable SPR-#### · kanban resort.\n\n" +
@@ -1788,7 +1935,7 @@
         partCode + " → " + (sections[toSectionId] || {}).label + " · code unchanged"
       );
     } catch (e) {
-      alert(e.message);
+      deskAlert(e.message);
     }
   }
 
@@ -1842,18 +1989,18 @@
   const pathBtn = $("doc-path-btn");
   if (pathBtn)
     pathBtn.addEventListener("click", () =>
-      openVault("open").catch((e) => alert(e.message))
+      openVault("open").catch((e) => deskAlert(e.message))
     );
   const openVaultBtn = $("btn-open-vault");
   if (openVaultBtn)
     openVaultBtn.addEventListener("click", () =>
-      openVault("open").catch((e) => alert(e.message))
+      openVault("open").catch((e) => deskAlert(e.message))
     );
   $("btn-empty-new").addEventListener("click", () => newDoc());
   const emptyOpen = $("btn-empty-open");
   if (emptyOpen)
     emptyOpen.addEventListener("click", () =>
-      openVault("open").catch((e) => alert(e.message))
+      openVault("open").catch((e) => deskAlert(e.message))
     );
 
   // Vault dialog
@@ -1867,31 +2014,31 @@
     });
   $("vault-up") &&
     $("vault-up").addEventListener("click", () => {
-      loadVaultFolder("").catch((e) => alert(e.message));
+      loadVaultFolder("").catch((e) => deskAlert(e.message));
     });
   $("vault-open") &&
     $("vault-open").addEventListener("click", () =>
-      vaultActivate().catch((e) => alert(e.message))
+      vaultActivate().catch((e) => deskAlert(e.message))
     );
   $("vault-new-folder") &&
     $("vault-new-folder").addEventListener("click", () =>
-      vaultNewFolder().catch((e) => alert(e.message))
+      vaultNewFolder().catch((e) => deskAlert(e.message))
     );
   $("vault-new-doc") &&
     $("vault-new-doc").addEventListener("click", () =>
-      newDoc(state.vault.folder).catch((e) => alert(e.message))
+      newDoc(state.vault.folder).catch((e) => deskAlert(e.message))
     );
   $("vault-rename") &&
     $("vault-rename").addEventListener("click", () =>
-      vaultRename().catch((e) => alert(e.message))
+      vaultRename().catch((e) => deskAlert(e.message))
     );
   $("vault-move") &&
     $("vault-move").addEventListener("click", () =>
-      vaultMove().catch((e) => alert(e.message))
+      vaultMove().catch((e) => deskAlert(e.message))
     );
   $("vault-delete") &&
     $("vault-delete").addEventListener("click", () =>
-      vaultDelete().catch((e) => alert(e.message))
+      vaultDelete().catch((e) => deskAlert(e.message))
     );
   document.addEventListener("keydown", (e) => {
     if (!$("vault-backdrop") || $("vault-backdrop").hidden) return;
@@ -1900,9 +2047,26 @@
       closeVault();
     } else if (e.key === "Enter" && state.vault.selected) {
       e.preventDefault();
-      vaultActivate().catch((err) => alert(err.message));
+      vaultActivate().catch((err) => deskAlert(err.message));
     }
   });
+  // Desk dialogs (in-app alert / confirm / prompt)
+  $("desk-dialog-ok") &&
+    $("desk-dialog-ok").addEventListener("click", () => _deskAccept());
+  $("desk-dialog-cancel") &&
+    $("desk-dialog-cancel").addEventListener("click", () => _deskCancel());
+  $("desk-dialog-backdrop") &&
+    $("desk-dialog-backdrop").addEventListener("click", (e) => {
+      if (e.target === $("desk-dialog-backdrop")) _deskCancel();
+    });
+  $("desk-dialog-input") &&
+    $("desk-dialog-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        _deskAccept();
+      }
+    });
+
   $("btn-store").addEventListener("click", storeFragment);
   $("composer-leaf").addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
@@ -1938,7 +2102,7 @@
         }
         setStatus("Image ready · " + (up.image_name || up.image_id));
       } catch (err) {
-        alert(err.message);
+        deskAlert(err.message);
         setStatus("Image upload failed");
       }
     });
@@ -1981,18 +2145,25 @@
           return t;
         });
       } else if (act === "paste") {
-        const text = window.prompt("Paste table from Excel / Sheets (TSV or CSV):", "");
-        if (text == null) return;
-        const parsed = parseGridPaste(text);
-        if (!parsed) {
-          setStatus("Paste was empty");
-          return;
-        }
-        state.composerTable = parsed;
-        if ($("composer-table-header"))
-          $("composer-table-header").checked = parsed.header;
-        syncComposerTable();
-        setStatus("Pasted " + parsed.rows.length + " × " + parsed.rows[0].length);
+        deskPromptArea(
+          "Paste table from Excel / Sheets (TSV or CSV):",
+          "",
+          "Paste grid"
+        ).then((text) => {
+          if (text == null) return;
+          const parsed = parseGridPaste(text);
+          if (!parsed) {
+            setStatus("Paste was empty");
+            return;
+          }
+          state.composerTable = parsed;
+          if ($("composer-table-header"))
+            $("composer-table-header").checked = parsed.header;
+          syncComposerTable();
+          setStatus(
+            "Pasted " + parsed.rows.length + " × " + parsed.rows[0].length
+          );
+        });
       }
     });
 
@@ -2007,7 +2178,7 @@
     $("table-edit-close").addEventListener("click", closeTableEdit);
   $("table-edit-save") &&
     $("table-edit-save").addEventListener("click", () =>
-      saveTableEdit().catch((err) => alert(err.message))
+      saveTableEdit().catch((err) => deskAlert(err.message))
     );
   $("table-edit-backdrop") &&
     $("table-edit-backdrop").addEventListener("click", (e) => {
@@ -2032,10 +2203,18 @@
       } else if (act === "del-col") {
         if (t.rows[0] && t.rows[0].length > 1) t.rows.forEach((r) => r.pop());
       } else if (act === "paste") {
-        const text = window.prompt("Paste table (TSV/CSV):", "");
-        if (text == null) return;
-        const parsed = parseGridPaste(text);
-        if (parsed) t = parsed;
+        deskPromptArea("Paste table (TSV/CSV):", "", "Paste grid").then(
+          (text) => {
+            if (text == null) return;
+            const parsed = parseGridPaste(text);
+            if (!parsed) return;
+            state.tableEdit.table = rectangularize(parsed);
+            if ($("table-edit-header"))
+              $("table-edit-header").checked = state.tableEdit.table.header;
+            syncTableEditGrid();
+          }
+        );
+        return;
       }
       state.tableEdit.table = rectangularize(t);
       if (hdr) hdr.checked = state.tableEdit.table.header;
@@ -2048,6 +2227,21 @@
     const tag = (e.target && e.target.tagName) || "";
     const inField =
       tag === "TEXTAREA" || tag === "INPUT" || tag === "SELECT";
+
+    // desk dialog keys
+    if ($("desk-dialog-backdrop") && !$("desk-dialog-backdrop").hidden) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        _deskCancel();
+        return;
+      }
+      if (e.key === "Enter" && !e.shiftKey && tag !== "TEXTAREA") {
+        e.preventDefault();
+        _deskAccept();
+        return;
+      }
+      return;
+    }
 
     if (e.key === "Escape") {
       closeMenus();
@@ -2073,15 +2267,15 @@
     }
 
     const k = e.key.toLowerCase();
-    if (k === "n" && !e.shiftKey) {
+    if (k === "n" && e.shiftKey) {
+      e.preventDefault();
+      runCmd("new-section");
+    } else if (k === "n" && !e.shiftKey) {
       e.preventDefault();
       runCmd("new-doc");
     } else if (k === "o") {
       e.preventDefault();
       runCmd("open-doc");
-    } else if (k === "s" && e.shiftKey) {
-      e.preventDefault();
-      runCmd("new-section");
     } else if (k === "l" && !inField) {
       e.preventDefault();
       runCmd("focus-composer");

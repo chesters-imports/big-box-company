@@ -47,7 +47,7 @@
           </button>
           <div class="menu-drop" id="menu-document" hidden>
             <button type="button" class="menu-item" data-cmd="new-section" data-need-doc>
-              <span>New section…</span><kbd>Ctrl+Shift+S</kbd>
+              <span>New section…</span><kbd>Ctrl+Shift+N</kbd>
             </button>
             <button type="button" class="menu-item" data-cmd="focus-composer" data-need-doc>
               <span>Focus new fragment</span><kbd>Ctrl+L</kbd>
@@ -288,6 +288,43 @@
         <article class="print-page" id="print-page" aria-label="Document printout">
           <!-- filled by app.js -->
         </article>
+      </div>
+
+      <!-- Desk dialogs (replace window.alert / confirm / prompt) -->
+      <div id="desk-dialog-backdrop" class="vault-backdrop" hidden>
+        <div
+          class="desk-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="desk-dialog-title"
+        >
+          <div class="desk-dialog-head">
+            <strong id="desk-dialog-title">sopr Documenter</strong>
+          </div>
+          <div class="desk-dialog-body">
+            <p id="desk-dialog-message" class="desk-dialog-message"></p>
+            <input
+              type="text"
+              id="desk-dialog-input"
+              class="desk-dialog-input"
+              hidden
+            />
+            <textarea
+              id="desk-dialog-textarea"
+              class="desk-dialog-textarea"
+              rows="6"
+              hidden
+            ></textarea>
+          </div>
+          <div class="desk-dialog-actions">
+            <button type="button" class="btn" id="desk-dialog-cancel" hidden>
+              Cancel
+            </button>
+            <button type="button" class="btn primary" id="desk-dialog-ok">
+              OK
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Table edit modal (existing SPR table frags) -->

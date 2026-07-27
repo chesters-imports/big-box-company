@@ -779,6 +779,61 @@ select {
   text-transform: uppercase;
 }
 
+/* In-app alert / confirm / prompt — never window.* */
+.desk-dialog {
+  background: var(--white);
+  border: 1px solid var(--border);
+  width: min(440px, 94vw);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+}
+
+.desk-dialog-head {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--section-head);
+  font-size: 13px;
+}
+
+.desk-dialog-body {
+  padding: 14px;
+}
+
+.desk-dialog-message {
+  margin: 0 0 10px;
+  white-space: pre-wrap;
+  line-height: 1.45;
+  font-size: 13px;
+}
+
+.desk-dialog-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  font: inherit;
+  background: var(--white);
+}
+
+.desk-dialog-textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  font: inherit;
+  resize: vertical;
+  min-height: 100px;
+  background: var(--white);
+  line-height: 1.4;
+}
+
+.desk-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 14px 14px;
+  border-top: 1px solid var(--border);
+}
+
 .table-edit-dialog {
   background: var(--white);
   border: 1px solid var(--border);
