@@ -27,14 +27,18 @@
               <span>New document…</span><kbd>Ctrl+N</kbd>
             </button>
             <button type="button" class="menu-item" data-cmd="open-doc">
-              <span>Open document…</span><kbd>Ctrl+O</kbd>
+              <span>Open…</span><kbd>Ctrl+O</kbd>
             </button>
-            <button type="button" class="menu-item" data-cmd="refresh-list">
-              <span>Refresh list</span><kbd>F5</kbd>
+            <button type="button" class="menu-item" data-cmd="vault-manage">
+              <span>Vault manager…</span>
             </button>
             <div class="menu-sep"></div>
-            <div class="menu-label">Recent / available</div>
-            <div id="menu-open-list" class="menu-open-list"></div>
+            <button type="button" class="menu-item" data-cmd="rename-doc" data-need-doc>
+              <span>Rename document…</span>
+            </button>
+            <button type="button" class="menu-item" data-cmd="delete-doc" data-need-doc>
+              <span>Delete document…</span>
+            </button>
           </div>
         </div>
         <div class="menu">
@@ -94,15 +98,52 @@
         </div>
       </nav>
 
-      <!-- Thin document strip (not a second toolbar of chaos) -->
+      <!-- Thin document strip — path + open vault (no permanent file rail) -->
       <div class="docstrip" id="docstrip">
         <span class="muted">Document:</span>
-        <select id="doc-select" aria-label="Open document">
-          <option value="">— select —</option>
-        </select>
+        <button type="button" class="doc-path-btn" id="doc-path-btn" title="Open vault file manager">
+          <span id="doc-path-label">— no document —</span>
+        </button>
+        <button type="button" class="btn strip-open" id="btn-open-vault" title="Open vault (Ctrl+O)">
+          Open…
+        </button>
         <span class="docstrip-hint muted small" id="docstrip-hint"
-          >File · Document · View · Help</span
+          >File · Open = vault manager</span
         >
+      </div>
+
+      <!-- Vault file manager (illusion of folders; still safe_box only) -->
+      <div id="vault-backdrop" class="vault-backdrop" hidden>
+        <div
+          class="vault-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="vault-title"
+        >
+          <header class="vault-chrome">
+            <span class="chip">sopr<strong>DOC</strong></span>
+            <span class="vault-title" id="vault-title">Open document</span>
+            <button type="button" class="btn linkish" id="vault-close" title="Close">✕</button>
+          </header>
+          <div class="vault-toolbar">
+            <button type="button" class="btn" id="vault-up" title="Up one folder" disabled>↑ Up</button>
+            <span class="vault-crumb muted small" id="vault-crumb">safe_box \</span>
+            <span class="vault-toolbar-spacer"></span>
+            <button type="button" class="btn" id="vault-new-folder">New folder…</button>
+            <button type="button" class="btn" id="vault-new-doc">New document…</button>
+          </div>
+          <div class="vault-body" id="vault-list" tabindex="0"></div>
+          <footer class="vault-foot">
+            <span class="muted small" id="vault-status">Select a .sopr file or folder</span>
+            <div class="vault-foot-actions">
+              <button type="button" class="btn linkish" id="vault-rename" disabled>Rename…</button>
+              <button type="button" class="btn linkish" id="vault-move" disabled>Move…</button>
+              <button type="button" class="btn linkish danger" id="vault-delete" disabled>Delete…</button>
+              <button type="button" class="btn linkish" id="vault-cancel">Cancel</button>
+              <button type="button" class="btn cta-new" id="vault-open" disabled>Open</button>
+            </div>
+          </footer>
+        </div>
       </div>
 
       <!-- EMPTY -->
@@ -115,15 +156,15 @@
             something is filed.
           </p>
           <div class="empty-actions">
-            <button type="button" class="btn" id="btn-empty-refresh">
-              Refresh list
+            <button type="button" class="btn" id="btn-empty-open">
+              Open vault…
             </button>
             <button type="button" class="btn primary" id="btn-empty-new">
               New document
             </button>
           </div>
           <p class="muted small foot">
-            Menu: <strong>File → New document</strong> · Ctrl+N
+            <strong>File → Open…</strong> (Ctrl+O) · vault folders under safe_box
           </p>
           <p class="muted small foot">“Please put it in the doc.” — Daniel Wake</p>
         </div>
@@ -174,13 +215,14 @@
       <!-- KANBAN RESORT -->
       <div id="view-kanban" class="view-kanban" hidden>
         <div class="kanban-banner">
-          THIS IS THE PRODUCT · drag cards between columns · part codes never
-          rename · column headers: ↑↓ reorder sections · Ctrl+3 print view
+          Cards show document order (same as Ctrl+3) · drag to bin · column ↑↓ =
+          outline · Loose is intake only (not printed) · SPR codes never rename
         </div>
         <div id="kanban-board" class="kanban-board"></div>
         <div class="kanban-foot muted small">
-          Frags: drag between columns. Sections: use ↑↓ on column heads (intake
-          order ≠ outline). SPR-#### never renames.
+          Frags: drag between columns (top of column = first in print). Sections:
+          ↑↓ on column heads (intake ≠ outline). Composer still stacks
+          newest-under-top on page 1.
         </div>
       </div>
 

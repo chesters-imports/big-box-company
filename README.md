@@ -18,6 +18,7 @@ We are the office that ships **Office / Confluence energy** — without the clou
 | **Charlie’s Toys** | time machines, import saws, slightly illegal fun | `charlies-toys/` |
 | **DATBOX Studio** | specialized bags for world chunks | `datbox-studio/` |
 | **Big Box Company** | aggressively unsexy documentation industrial | `big-box-company/` |
+| **World Builder Studios** | inhabit-able world builders (office / co-presence) | `world-builder-studios/` |
 
 Same physics as always: **every product comes from a maker**. Sometimes a studio ships a line. Big Box doesn’t sell Hekate decks or sweater-girl panic cuts. We sell tools for people whose brains arrive as **fragments** and whose job still wants a **section heading**.
 

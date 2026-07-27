@@ -6,9 +6,19 @@
     docs: [],
     slug: null,
     doc: null,
+    docFolder: "",
+    docPath: "",
     activeSectionId: null,
     view: "empty", // empty | doc | kanban | print
     lastStored: null,
+    vault: {
+      open: false,
+      folder: "",
+      folders: [],
+      files: [],
+      selected: null, // { kind: 'file'|'folder', id/slug, ... }
+      mode: "open", // open | manage
+    },
   };
 
   /** Time Machina cord — peek only. Offline = silent skip. */
@@ -122,9 +132,28 @@
       opts.body = JSON.stringify(body);
     }
     const res = await fetch(path, opts);
-    const data = await res.json().catch(() => ({}));
+    const text = await res.text();
+    let data = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (_e) {
+      data = {};
+    }
     if (!res.ok) {
-      throw new Error(data.error || res.statusText || "request failed");
+      // Static file server 404s look like "File not found" when the desk is on
+      // an old sopr process that never registered /api/vault — force a full relaunch.
+      const raw = (data.error || res.statusText || text || "request failed").trim();
+      if (
+        /file not found/i.test(raw) ||
+        (res.status === 404 && path.indexOf("/api/") === 0 && !data.error)
+      ) {
+        throw new Error(
+          "API missing (" +
+            path +
+            "). Fully quit sopr Documenter and relaunch so the vault server restarts — Reload alone is not enough."
+        );
+      }
+      throw new Error(data.error || raw || "request failed");
     }
     return data;
   }
@@ -137,6 +166,7 @@
     const meta = $("chrome-meta");
     if (!state.doc) {
       meta.textContent = "Big Box Company · no document selected";
+      updateDocPathStrip();
       return;
     }
     meta.textContent =
@@ -145,6 +175,7 @@
       " · " +
       Object.keys(state.doc.parts || {}).length +
       " parts";
+    updateDocPathStrip();
   }
 
   function sectionOrder(doc) {
@@ -160,34 +191,53 @@
     return out;
   }
 
+  /** Intake bin — polymath catch-all; not final outline, not print. */
+  function isLooseSection(sec) {
+    const lab = ((sec && sec.label) || "").trim().toLowerCase();
+    return lab === "loose / unbinned" || lab === "loose/unbinned";
+  }
+
+  /**
+   * Storage vs document order:
+   * part_ids[0] = newest under composer (page 1 stack grows downward under top).
+   * Read/print/kanban order = reverse of storage (oldest first → document flow).
+   */
+  function readOrderPartIds(pids) {
+    return (pids || []).slice().reverse();
+  }
+
+  function storageOrderPartIds(readPids) {
+    return (readPids || []).slice().reverse();
+  }
+
+  function updateDocPathStrip() {
+    const lab = $("doc-path-label");
+    if (!lab) return;
+    if (!state.slug) {
+      lab.textContent = "— no document —";
+      return;
+    }
+    const path =
+      state.docPath ||
+      (state.docFolder
+        ? state.docFolder + "/" + state.slug + ".sopr"
+        : state.slug + ".sopr");
+    const name = (state.doc && state.doc.doc_name) || state.slug;
+    lab.textContent = name + "  ·  " + path;
+  }
+
   async function refreshDocList() {
     const data = await api("GET", "/api/docs");
     state.docs = data.docs || [];
-    const sel = $("doc-select");
-    const cur = state.slug || "";
-    sel.innerHTML = '<option value="">— select —</option>';
-    for (const d of state.docs) {
-      const opt = document.createElement("option");
-      opt.value = d.slug;
-      opt.textContent =
-        d.doc_name +
-        " (" +
-        (d.part_count || 0) +
-        " frags · " +
-        (d.section_count || 0) +
-        " sec)";
-      if (d.slug === cur) opt.selected = true;
-      sel.appendChild(opt);
-    }
-    // keep File → open list warm if menu is open
-    const fileDrop = $("menu-file");
-    if (fileDrop && !fileDrop.hidden) fillOpenMenu();
+    updateDocPathStrip();
   }
 
   async function openDoc(slug) {
     if (!slug) {
       state.slug = null;
       state.doc = null;
+      state.docFolder = "";
+      state.docPath = "";
       state.activeSectionId = null;
       state.view = "empty";
       render();
@@ -196,6 +246,8 @@
     const data = await api("GET", "/api/docs/" + encodeURIComponent(slug));
     state.slug = slug;
     state.doc = data.doc;
+    state.docFolder = data.folder || "";
+    state.docPath = data.path || slug + ".sopr";
     const order = sectionOrder(state.doc);
     if (
       !state.activeSectionId ||
@@ -204,17 +256,333 @@
       state.activeSectionId = order[0] || null;
     }
     state.view = "doc";
+    closeVault();
     render();
+    updateDocPathStrip();
   }
 
-  async function newDoc() {
+  async function newDoc(folder) {
+    const place =
+      folder != null ? folder : state.vault.open ? state.vault.folder : "";
     const name = window.prompt("Document name:", "PLATFORM-STORY");
     if (!name || !name.trim()) return;
     try {
-      const data = await api("POST", "/api/docs", { doc_name: name.trim() });
+      const data = await api("POST", "/api/docs", {
+        doc_name: name.trim(),
+        folder: place || "",
+      });
       await refreshDocList();
+      if (state.vault.open) await loadVaultFolder(state.vault.folder);
       await openDoc(data.doc.slug);
-      setStatus("Created " + data.doc.slug + ".sopr");
+      setStatus(
+        "Created " +
+          (data.path || data.doc.slug + ".sopr") +
+          (place ? " in " + place : "")
+      );
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  /* ---------- Vault file manager (no permanent rail) ---------- */
+
+  async function openVault(mode) {
+    state.vault.open = true;
+    state.vault.mode = mode || "open";
+    state.vault.selected = null;
+    const title = $("vault-title");
+    if (title) {
+      title.textContent =
+        state.vault.mode === "manage" ? "Vault manager" : "Open document";
+    }
+    $("vault-backdrop").hidden = false;
+    await loadVaultFolder(state.vault.folder || "");
+    $("vault-list") && $("vault-list").focus();
+  }
+
+  function closeVault() {
+    state.vault.open = false;
+    state.vault.selected = null;
+    const bd = $("vault-backdrop");
+    if (bd) bd.hidden = true;
+  }
+
+  async function loadVaultFolder(folder) {
+    state.vault.folder = folder || "";
+    const q =
+      "/api/vault" +
+      (state.vault.folder
+        ? "?folder=" + encodeURIComponent(state.vault.folder)
+        : "");
+    const data = await api("GET", q);
+    if (data.ok === false) throw new Error(data.error || "vault error");
+    // Old servers never returned {ok, files} — treat missing shape as restart needed
+    if (!Array.isArray(data.files) && !Array.isArray(data.folders)) {
+      throw new Error(
+        "Vault API shape unexpected. Fully quit and relaunch sopr Documenter (not just Reload)."
+      );
+    }
+    state.vault.folders = data.folders || [];
+    state.vault.files = data.files || [];
+    state.vault.selected = null;
+    renderVaultList();
+    syncVaultChrome();
+  }
+
+  function syncVaultChrome() {
+    const crumb = $("vault-crumb");
+    if (crumb) {
+      crumb.textContent = state.vault.folder
+        ? "safe_box \\ " + state.vault.folder + " \\"
+        : "safe_box \\";
+    }
+    const up = $("vault-up");
+    if (up) up.disabled = !state.vault.folder;
+    const sel = state.vault.selected;
+    const isFile = sel && sel.kind === "file";
+    const isFolder = sel && sel.kind === "folder";
+    ["vault-rename", "vault-delete"].forEach((id) => {
+      const el = $(id);
+      if (el) el.disabled = !sel;
+    });
+    const move = $("vault-move");
+    if (move) move.disabled = !isFile;
+    const openBtn = $("vault-open");
+    if (openBtn) {
+      openBtn.disabled = !sel;
+      openBtn.textContent = isFolder ? "Open folder" : "Open";
+    }
+    const st = $("vault-status");
+    if (st) {
+      if (!sel) st.textContent = "Select a .sopr file or folder";
+      else if (isFolder)
+        st.textContent = "Folder “" + sel.id + "” · " + (sel.file_count || 0) + " files";
+      else
+        st.textContent =
+          (sel.doc_name || sel.slug) +
+          " · " +
+          (sel.path || sel.slug + ".sopr");
+    }
+  }
+
+  function renderVaultList() {
+    const body = $("vault-list");
+    if (!body) return;
+    body.innerHTML = "";
+    const folders = state.vault.folders || [];
+    const files = state.vault.files || [];
+    if (!folders.length && !files.length) {
+      body.innerHTML =
+        '<div class="vault-empty muted">Empty place — New folder or New document.</div>';
+      syncVaultChrome();
+      return;
+    }
+    for (const f of folders) {
+      body.appendChild(makeVaultRow("folder", f));
+    }
+    for (const f of files) {
+      body.appendChild(makeVaultRow("file", f));
+    }
+    syncVaultChrome();
+  }
+
+  function makeVaultRow(kind, item) {
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = "vault-row";
+    row.dataset.kind = kind;
+    if (kind === "folder") {
+      row.dataset.id = item.id;
+      row.innerHTML =
+        '<span class="vault-ico">📁</span>' +
+        '<span class="vault-name">' +
+        escapeHtml(item.name || item.id) +
+        "</span>" +
+        '<span class="vault-meta muted">' +
+        (item.file_count || 0) +
+        " files</span>";
+    } else {
+      row.dataset.slug = item.slug;
+      row.innerHTML =
+        '<span class="vault-ico">📄</span>' +
+        '<span class="vault-name">' +
+        escapeHtml(item.doc_name || item.slug) +
+        "</span>" +
+        '<span class="vault-meta muted">' +
+        escapeHtml(item.slug) +
+        ".sopr · " +
+        (item.part_count || 0) +
+        " frags</span>";
+    }
+    row.addEventListener("click", () => {
+      bodySelectVault(kind, item, row);
+    });
+    row.addEventListener("dblclick", () => {
+      bodySelectVault(kind, item, row);
+      vaultActivate();
+    });
+    return row;
+  }
+
+  function bodySelectVault(kind, item, rowEl) {
+    state.vault.selected =
+      kind === "folder"
+        ? { kind: "folder", id: item.id, file_count: item.file_count }
+        : {
+            kind: "file",
+            slug: item.slug,
+            doc_name: item.doc_name,
+            path: item.path,
+            folder: item.folder,
+          };
+    document.querySelectorAll(".vault-row.on").forEach((el) => {
+      el.classList.remove("on");
+    });
+    if (rowEl) rowEl.classList.add("on");
+    syncVaultChrome();
+  }
+
+  async function vaultActivate() {
+    const sel = state.vault.selected;
+    if (!sel) return;
+    if (sel.kind === "folder") {
+      await loadVaultFolder(sel.id);
+      return;
+    }
+    await openDoc(sel.slug);
+    setStatus("Opened " + (state.docPath || sel.slug + ".sopr"));
+  }
+
+  async function vaultNewFolder() {
+    const name = window.prompt("Folder name (under safe_box):", "company");
+    if (!name || !name.trim()) return;
+    try {
+      await api("POST", "/api/vault/folders", { name: name.trim() });
+      await loadVaultFolder(state.vault.folder);
+      setStatus("Folder “" + name.trim() + "” created");
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function vaultRename() {
+    const sel = state.vault.selected;
+    if (!sel) return;
+    if (sel.kind === "folder") {
+      const next = window.prompt("Rename folder:", sel.id);
+      if (next === null || !next.trim()) return;
+      try {
+        await api("POST", "/api/vault/rename-folder", {
+          id: sel.id,
+          name: next.trim(),
+        });
+        if (state.vault.folder === sel.id) state.vault.folder = next.trim();
+        await loadVaultFolder(state.vault.folder);
+        setStatus("Folder renamed");
+      } catch (e) {
+        alert(e.message);
+      }
+      return;
+    }
+    const name = window.prompt(
+      "Display name:",
+      sel.doc_name || sel.slug
+    );
+    if (name === null) return;
+    const slug = window.prompt(
+      "File slug (filename without .sopr):",
+      sel.slug
+    );
+    if (slug === null) return;
+    try {
+      const data = await api("PUT", "/api/docs/" + encodeURIComponent(sel.slug), {
+        doc_name: name.trim() || sel.doc_name,
+        slug: slug.trim() || sel.slug,
+      });
+      if (state.slug === sel.slug) {
+        state.slug = data.doc.slug;
+        state.doc = data.doc;
+        state.docFolder = data.folder || "";
+        state.docPath = data.path || "";
+        updateDocPathStrip();
+      }
+      await loadVaultFolder(state.vault.folder);
+      setStatus("Renamed → " + (data.path || data.doc.slug));
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function vaultMove() {
+    const sel = state.vault.selected;
+    if (!sel || sel.kind !== "file") return;
+    const dest = window.prompt(
+      "Move to folder (empty = vault root):",
+      state.vault.folder || ""
+    );
+    if (dest === null) return;
+    try {
+      await api("POST", "/api/vault/move", {
+        slug: sel.slug,
+        folder: dest.trim(),
+      });
+      if (state.slug === sel.slug) {
+        state.docFolder = dest.trim();
+        state.docPath =
+          (dest.trim() ? dest.trim() + "/" : "") + sel.slug + ".sopr";
+        updateDocPathStrip();
+      }
+      await loadVaultFolder(state.vault.folder);
+      setStatus("Moved " + sel.slug + ".sopr");
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function vaultDelete() {
+    const sel = state.vault.selected;
+    if (!sel) return;
+    if (sel.kind === "folder") {
+      if (
+        !window.confirm(
+          "Delete empty folder “" +
+            sel.id +
+            "”?\n\nFolder must be empty (move documents first)."
+        )
+      )
+        return;
+      try {
+        await api("DELETE", "/api/vault/folders/" + encodeURIComponent(sel.id));
+        if (state.vault.folder === sel.id) state.vault.folder = "";
+        await loadVaultFolder(state.vault.folder);
+        setStatus("Folder deleted");
+      } catch (e) {
+        alert(e.message);
+      }
+      return;
+    }
+    if (
+      !window.confirm(
+        "Delete document “" +
+          (sel.doc_name || sel.slug) +
+          "”?\n\nRemoves " +
+          (sel.path || sel.slug + ".sopr") +
+          " from the vault."
+      )
+    )
+      return;
+    try {
+      await api("DELETE", "/api/docs/" + encodeURIComponent(sel.slug));
+      if (state.slug === sel.slug) {
+        state.slug = null;
+        state.doc = null;
+        state.docPath = "";
+        state.docFolder = "";
+        state.view = "empty";
+        render();
+      }
+      await loadVaultFolder(state.vault.folder);
+      setStatus("Deleted " + sel.slug);
     } catch (e) {
       alert(e.message);
     }
@@ -311,6 +679,107 @@
     }
   }
 
+  async function editPartLeaf(partCode) {
+    if (!state.doc || !state.slug || !partCode) return;
+    const p = (state.doc.parts || {})[partCode];
+    if (!p) return;
+    const next = window.prompt("Edit fragment " + partCode + ":", p.leaf || "");
+    if (next === null) return;
+    try {
+      const data = await api(
+        "PUT",
+        "/api/docs/" +
+          encodeURIComponent(state.slug) +
+          "/parts/" +
+          encodeURIComponent(partCode),
+        { leaf: next }
+      );
+      state.doc = data.doc;
+      render();
+      setStatus("Edited " + partCode);
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function deletePart(partCode) {
+    if (!state.doc || !state.slug || !partCode) return;
+    if (
+      !window.confirm(
+        "Delete " +
+          partCode +
+          "?\n\nPart code is stable history — it will not be reused. This removes the fragment from the document."
+      )
+    ) {
+      return;
+    }
+    try {
+      const data = await api(
+        "DELETE",
+        "/api/docs/" +
+          encodeURIComponent(state.slug) +
+          "/parts/" +
+          encodeURIComponent(partCode)
+      );
+      state.doc = data.doc;
+      if (state.lastStored === partCode) state.lastStored = null;
+      render();
+      setStatus("Deleted " + partCode);
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function renameDoc() {
+    if (!state.doc || !state.slug) return;
+    const next = window.prompt(
+      "Document display name:",
+      state.doc.doc_name || state.slug
+    );
+    if (next === null || !next.trim()) return;
+    try {
+      const data = await api(
+        "PUT",
+        "/api/docs/" + encodeURIComponent(state.slug),
+        { doc_name: next.trim() }
+      );
+      state.doc = data.doc;
+      await refreshDocList();
+      render();
+      setStatus("Renamed document · slug " + state.slug + ".sopr unchanged");
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function deleteDoc() {
+    if (!state.slug) return;
+    const name = (state.doc && state.doc.doc_name) || state.slug;
+    if (
+      !window.confirm(
+        "Delete document “" +
+          name +
+          "”?\n\nThis permanently removes " +
+          state.slug +
+          ".sopr from safe_box."
+      )
+    ) {
+      return;
+    }
+    try {
+      await api("DELETE", "/api/docs/" + encodeURIComponent(state.slug));
+      state.slug = null;
+      state.doc = null;
+      state.activeSectionId = null;
+      state.view = "empty";
+      await refreshDocList();
+      render();
+      setStatus("Deleted " + name);
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
   function leafHtml(p) {
     const text = escapeHtml(p.leaf || "");
     if (p.as_pre) {
@@ -371,35 +840,7 @@
     if (!drop || !top) return;
     drop.hidden = false;
     top.classList.add("open");
-    if (name === "file") fillOpenMenu();
     syncMenuEnabled();
-  }
-
-  function fillOpenMenu() {
-    const box = $("menu-open-list");
-    if (!box) return;
-    box.innerHTML = "";
-    if (!state.docs.length) {
-      box.innerHTML =
-        '<div class="menu-open-empty">No .sopr files yet — New document…</div>';
-      return;
-    }
-    for (const d of state.docs) {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "menu-item";
-      b.innerHTML =
-        "<span>" +
-        escapeHtml(d.doc_name || d.slug) +
-        "</span><span class=\"muted small\">" +
-        escapeHtml(d.slug) +
-        "</span>";
-      b.addEventListener("click", () => {
-        closeMenus();
-        openDoc(d.slug).catch((e) => alert(e.message));
-      });
-      box.appendChild(b);
-    }
   }
 
   function syncMenuEnabled() {
@@ -415,15 +856,19 @@
       case "new-doc":
         return newDoc();
       case "open-doc":
-        $("doc-select").focus();
-        setStatus("Choose a document in the strip (or File → list below)");
-        return;
+        return openVault("open").catch((e) => alert(e.message));
+      case "vault-manage":
+        return openVault("manage").catch((e) => alert(e.message));
       case "refresh-list":
         return refreshDocList()
           .then(() => setStatus("List refreshed"))
           .catch((e) => alert(e.message));
       case "new-section":
         return newSection();
+      case "rename-doc":
+        return renameDoc();
+      case "delete-doc":
+        return deleteDoc();
       case "focus-composer":
         if (state.view !== "doc") showView("doc");
         setTimeout(() => $("composer-leaf") && $("composer-leaf").focus(), 0);
@@ -455,17 +900,18 @@
         alert(
           "sopr Documenter · keyboard\n\n" +
             "Ctrl+N          New document\n" +
-            "Ctrl+O          Focus open (document strip)\n" +
+            "Ctrl+O          Open vault file manager\n" +
             "F5              Refresh document list\n" +
             "Ctrl+Shift+S    New section\n" +
             "Ctrl+L          Focus new fragment composer\n" +
             "Ctrl+Enter      Store fragment (+ doc chip if Machina on)\n" +
             "Ctrl+1          Document mode (edit)\n" +
-            "Ctrl+2          Resort (kanban)\n" +
-            "Ctrl+3          Print / reader (TOC + full doc)\n" +
+            "Ctrl+2          Resort (kanban) — document order\n" +
+            "Ctrl+3          Print / reader (skips Loose / unbinned)\n" +
             "Ctrl+↑ / Ctrl+↓ Move active section in outline\n" +
             "Esc             Close menus / About\n\n" +
-            "Document → About this document… · TPS chips (knowledge only)"
+            "On a fragment: Edit / Delete buttons · part code never renames\n" +
+            "File → Rename / Delete document · Document → About (TPS chips)"
         );
         return;
       case "help-about":
@@ -617,20 +1063,30 @@
         (code === state.lastStored
           ? '<span class="tag-new">↓ just dropped under composer</span>'
           : "") +
-        '<button type="button" class="pre-toggle" data-part="' +
+        '<button type="button" class="part-act pre-toggle" data-act="pre" data-part="' +
         escapeHtml(code) +
         '">' +
         (p.as_pre ? "as text" : "as pre") +
         "</button>" +
+        '<button type="button" class="part-act" data-act="edit" data-part="' +
+        escapeHtml(code) +
+        '">Edit</button>' +
+        '<button type="button" class="part-act part-del" data-act="del" data-part="' +
+        escapeHtml(code) +
+        '">Delete</button>' +
         "</div>" +
         leafHtml(p) +
         "</div>";
       stack.appendChild(row);
     }
-    stack.querySelectorAll(".pre-toggle").forEach((btn) => {
+    stack.querySelectorAll(".part-act").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
-        togglePartAsPre(btn.getAttribute("data-part"));
+        const code = btn.getAttribute("data-part");
+        const act = btn.getAttribute("data-act");
+        if (act === "pre") togglePartAsPre(code);
+        else if (act === "edit") editPartLeaf(code);
+        else if (act === "del") deletePart(code);
       });
     });
   }
@@ -646,14 +1102,17 @@
     for (const sid of order) {
       const sec = sections[sid];
       const col = document.createElement("div");
-      col.className = "kanban-col";
+      col.className =
+        "kanban-col" + (isLooseSection(sec) ? " is-loose" : "");
       col.dataset.sectionId = sid;
 
       const head = document.createElement("div");
       head.className = "kanban-col-head";
       const title = document.createElement("span");
       title.className = "col-title";
-      title.textContent = sec.label || sid;
+      title.textContent =
+        (sec.label || sid) +
+        (isLooseSection(sec) ? " · not printed" : "");
       const ord = document.createElement("div");
       ord.className = "sec-ord";
       const idx = order.indexOf(sid);
@@ -685,7 +1144,8 @@
       cards.className = "kanban-cards";
       cards.dataset.sectionId = sid;
 
-      for (const code of sec.part_ids || []) {
+      // Document / print order (oldest → newest), not compose-stack storage
+      for (const code of readOrderPartIds(sec.part_ids || [])) {
         const p = parts[code];
         if (!p) continue;
         const card = document.createElement("div");
@@ -744,11 +1204,18 @@
     if (!doc) return;
     const sections = doc.sections || {};
     const parts = doc.parts || {};
-    const order = sectionOrder(doc);
+    // Outline for print: skip Loose / unbinned (intake bin only)
+    const order = sectionOrder(doc).filter(
+      (sid) => !isLooseSection(sections[sid])
+    );
     const toc = $("print-toc");
     const page = $("print-page");
     toc.innerHTML = "";
     page.innerHTML = "";
+
+    const printedCount = order.reduce((n, sid) => {
+      return n + ((sections[sid].part_ids || []).length);
+    }, 0);
 
     const sheet = document.createElement("div");
     sheet.className = "print-sheet";
@@ -760,7 +1227,7 @@
     sub.className = "doc-sub";
     sub.textContent =
       "sopr Documenter · outline view · " +
-      Object.keys(parts).length +
+      printedCount +
       " fragments · Big Box Company";
     sheet.appendChild(sub);
 
@@ -802,8 +1269,7 @@
       } else {
         // print order: reverse of compose stack (oldest first reads better)
         // part_ids[0] is newest — print oldest→newest for document flow
-        const readOrder = pids.slice().reverse();
-        for (const code of readOrder) {
+        for (const code of readOrderPartIds(pids)) {
           const p = parts[code];
           if (!p) continue;
           const frag = document.createElement("div");
@@ -835,25 +1301,28 @@
     const doc = state.doc;
     if (!doc) return;
     const sections = doc.sections || {};
-    // rebuild columns from current + move
+    // Work in document/read order (matches kanban display + page 3), then store reversed
     const columns = [];
     for (const sid of sectionOrder(doc)) {
       const sec = sections[sid];
-      let pids = (sec.part_ids || []).filter((c) => c !== partCode);
+      let readPids = readOrderPartIds(
+        (sec.part_ids || []).filter((c) => c !== partCode)
+      );
       if (sid === toSectionId) {
         if (beforeCard && beforeCard.dataset.partCode) {
           const before = beforeCard.dataset.partCode;
-          const idx = pids.indexOf(before);
-          if (idx >= 0) pids.splice(idx, 0, partCode);
-          else pids.unshift(partCode);
+          const idx = readPids.indexOf(before);
+          if (idx >= 0) readPids.splice(idx, 0, partCode);
+          else readPids.unshift(partCode);
         } else {
-          pids.unshift(partCode);
+          // drop on column body → top of document-order column (first in print)
+          readPids.unshift(partCode);
         }
       }
       columns.push({
         section_id: sid,
         label: sec.label,
-        part_ids: pids,
+        part_ids: storageOrderPartIds(readPids),
       });
     }
     try {
@@ -922,12 +1391,69 @@
       .querySelector(".about-dialog")
       .addEventListener("click", (e) => e.stopPropagation());
 
-  $("doc-select").addEventListener("change", (e) => {
-    openDoc(e.target.value).catch((err) => alert(err.message));
-  });
-  $("btn-empty-new").addEventListener("click", newDoc);
-  $("btn-empty-refresh").addEventListener("click", () => {
-    refreshDocList().catch((e) => alert(e.message));
+  const pathBtn = $("doc-path-btn");
+  if (pathBtn)
+    pathBtn.addEventListener("click", () =>
+      openVault("open").catch((e) => alert(e.message))
+    );
+  const openVaultBtn = $("btn-open-vault");
+  if (openVaultBtn)
+    openVaultBtn.addEventListener("click", () =>
+      openVault("open").catch((e) => alert(e.message))
+    );
+  $("btn-empty-new").addEventListener("click", () => newDoc());
+  const emptyOpen = $("btn-empty-open");
+  if (emptyOpen)
+    emptyOpen.addEventListener("click", () =>
+      openVault("open").catch((e) => alert(e.message))
+    );
+
+  // Vault dialog
+  $("vault-close") &&
+    $("vault-close").addEventListener("click", closeVault);
+  $("vault-cancel") &&
+    $("vault-cancel").addEventListener("click", closeVault);
+  $("vault-backdrop") &&
+    $("vault-backdrop").addEventListener("click", (e) => {
+      if (e.target === $("vault-backdrop")) closeVault();
+    });
+  $("vault-up") &&
+    $("vault-up").addEventListener("click", () => {
+      loadVaultFolder("").catch((e) => alert(e.message));
+    });
+  $("vault-open") &&
+    $("vault-open").addEventListener("click", () =>
+      vaultActivate().catch((e) => alert(e.message))
+    );
+  $("vault-new-folder") &&
+    $("vault-new-folder").addEventListener("click", () =>
+      vaultNewFolder().catch((e) => alert(e.message))
+    );
+  $("vault-new-doc") &&
+    $("vault-new-doc").addEventListener("click", () =>
+      newDoc(state.vault.folder).catch((e) => alert(e.message))
+    );
+  $("vault-rename") &&
+    $("vault-rename").addEventListener("click", () =>
+      vaultRename().catch((e) => alert(e.message))
+    );
+  $("vault-move") &&
+    $("vault-move").addEventListener("click", () =>
+      vaultMove().catch((e) => alert(e.message))
+    );
+  $("vault-delete") &&
+    $("vault-delete").addEventListener("click", () =>
+      vaultDelete().catch((e) => alert(e.message))
+    );
+  document.addEventListener("keydown", (e) => {
+    if (!$("vault-backdrop") || $("vault-backdrop").hidden) return;
+    if (e.key === "Escape") {
+      e.preventDefault();
+      closeVault();
+    } else if (e.key === "Enter" && state.vault.selected) {
+      e.preventDefault();
+      vaultActivate().catch((err) => alert(err.message));
+    }
   });
   $("btn-store").addEventListener("click", storeFragment);
   $("composer-leaf").addEventListener("keydown", (e) => {

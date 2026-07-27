@@ -15,7 +15,7 @@ import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 BOX_SYS = Path(__file__).resolve().parent
 PROD = BOX_SYS.parent
@@ -37,9 +37,75 @@ def slugify(name: str) -> str:
     return s or "document"
 
 
-def doc_path(slug: str) -> Path:
+def sanitize_folder(name: str) -> str:
+    """Physical dir under safe_box. Empty = vault root."""
+    s = (name or "").strip().strip("/\\")
+    if not s:
+        return ""
+    s = re.sub(r"[^\w\-]+", "-", s, flags=re.UNICODE)
+    s = re.sub(r"-+", "-", s).strip("-")
+    if not s or s.startswith("_"):
+        raise ValueError("invalid folder name")
+    if s.lower().endswith(".sopr"):
+        raise ValueError("invalid folder name")
+    return s
+
+
+def safe_stem(slug: str) -> str:
     safe = re.sub(r"[^\w.\-]+", "_", slug or "document")
-    return SAFE_BOX / f"{safe}{DOC_EXT}"
+    if not safe:
+        raise ValueError("empty slug")
+    return safe
+
+
+def doc_path(slug: str, folder: str = "") -> Path:
+    """Canonical path for a new write (folder optional). Prefer resolve for reads."""
+    stem = safe_stem(slug)
+    name = f"{stem}{DOC_EXT}"
+    folder = sanitize_folder(folder) if folder else ""
+    if folder:
+        return SAFE_BOX / folder / name
+    return SAFE_BOX / name
+
+
+def iter_doc_files() -> list[Path]:
+    """All .sopr under safe_box root + one folder level (vault, not whole disk)."""
+    ensure_dirs()
+    found: list[Path] = []
+    seen: set[str] = set()
+    for p in sorted(SAFE_BOX.iterdir()):
+        if p.is_file() and p.suffix == DOC_EXT:
+            if p.stem not in seen:
+                seen.add(p.stem)
+                found.append(p)
+        elif p.is_dir() and not p.name.startswith(".") and not p.name.startswith("_"):
+            try:
+                sanitize_folder(p.name)
+            except ValueError:
+                continue
+            for child in sorted(p.iterdir()):
+                if child.is_file() and child.suffix == DOC_EXT and child.stem not in seen:
+                    seen.add(child.stem)
+                    found.append(child)
+    return found
+
+
+def folder_of_path(path: Path) -> str:
+    try:
+        rel = path.resolve().relative_to(SAFE_BOX.resolve())
+    except ValueError:
+        return ""
+    if len(rel.parts) == 1:
+        return ""
+    return rel.parts[0]
+
+
+def resolve_doc_path(slug: str) -> Path | None:
+    stem = safe_stem(slug)
+    for p in iter_doc_files():
+        if p.stem == stem:
+            return p
+    return None
 
 
 def load_json(path: Path) -> Any:
@@ -47,6 +113,7 @@ def load_json(path: Path) -> Any:
 
 
 def save_json(path: Path, data: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(data, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
@@ -112,12 +179,22 @@ def record_tps_chip(
 
 
 def list_docs() -> list[dict[str, Any]]:
+    """Flat list for strip / compat — includes folder place."""
     out: list[dict[str, Any]] = []
-    for p in sorted(SAFE_BOX.glob(f"*{DOC_EXT}")):
+    for p in iter_doc_files():
+        folder = folder_of_path(p)
         try:
             d = load_json(p)
         except (OSError, json.JSONDecodeError):
-            out.append({"slug": p.stem, "doc_name": p.stem, "error": "unreadable"})
+            out.append(
+                {
+                    "slug": p.stem,
+                    "doc_name": p.stem,
+                    "folder": folder,
+                    "path": str(p.relative_to(SAFE_BOX)).replace("\\", "/"),
+                    "error": "unreadable",
+                }
+            )
             continue
         parts = d.get("parts") or {}
         sections = d.get("sections") or {}
@@ -125,6 +202,8 @@ def list_docs() -> list[dict[str, Any]]:
             {
                 "slug": d.get("slug") or p.stem,
                 "doc_name": d.get("doc_name") or p.stem,
+                "folder": folder,
+                "path": str(p.relative_to(SAFE_BOX)).replace("\\", "/"),
                 "part_count": len(parts),
                 "section_count": len(sections),
                 "updated_at": d.get("updated_at"),
@@ -133,9 +212,76 @@ def list_docs() -> list[dict[str, Any]]:
     return out
 
 
+def list_vault(folder: str = "") -> dict[str, Any]:
+    """
+    Contents of one vault place (root or folder).
+    folders: subdirs at root when folder=='' ; empty when inside a folder (one level).
+    files: .sopr in this place.
+    """
+    ensure_dirs()
+    try:
+        folder = sanitize_folder(folder) if folder else ""
+    except ValueError as e:
+        return {"ok": False, "error": str(e)}
+
+    folders_out: list[dict[str, Any]] = []
+    files_out: list[dict[str, Any]] = []
+
+    if not folder:
+        for p in sorted(SAFE_BOX.iterdir()):
+            if p.is_dir() and not p.name.startswith(".") and not p.name.startswith("_"):
+                try:
+                    fid = sanitize_folder(p.name)
+                except ValueError:
+                    continue
+                n = sum(1 for c in p.iterdir() if c.is_file() and c.suffix == DOC_EXT)
+                folders_out.append({"id": fid, "name": fid, "file_count": n})
+            elif p.is_file() and p.suffix == DOC_EXT:
+                files_out.append(_file_meta(p, ""))
+    else:
+        base = SAFE_BOX / folder
+        if not base.is_dir():
+            return {"ok": False, "error": "folder not found", "folder": folder}
+        for p in sorted(base.iterdir()):
+            if p.is_file() and p.suffix == DOC_EXT:
+                files_out.append(_file_meta(p, folder))
+
+    return {
+        "ok": True,
+        "folder": folder,
+        "folders": folders_out,
+        "files": files_out,
+        "vault": "safe_box",
+    }
+
+
+def _file_meta(p: Path, folder: str) -> dict[str, Any]:
+    try:
+        d = load_json(p)
+        return {
+            "slug": d.get("slug") or p.stem,
+            "doc_name": d.get("doc_name") or p.stem,
+            "folder": folder,
+            "path": str(p.relative_to(SAFE_BOX)).replace("\\", "/"),
+            "part_count": len(d.get("parts") or {}),
+            "section_count": len(d.get("sections") or {}),
+            "updated_at": d.get("updated_at"),
+            "kind": "file",
+        }
+    except (OSError, json.JSONDecodeError):
+        return {
+            "slug": p.stem,
+            "doc_name": p.stem,
+            "folder": folder,
+            "path": str(p.relative_to(SAFE_BOX)).replace("\\", "/"),
+            "error": "unreadable",
+            "kind": "file",
+        }
+
+
 def load_doc(slug: str) -> dict[str, Any] | None:
-    path = doc_path(slug)
-    if not path.is_file():
+    path = resolve_doc_path(slug)
+    if path is None or not path.is_file():
         return None
     return ensure_doc_shape(load_json(path))
 
@@ -143,7 +289,10 @@ def load_doc(slug: str) -> dict[str, Any] | None:
 def save_doc(doc: dict[str, Any]) -> None:
     doc["updated_at"] = time.time()
     slug = doc.get("slug") or "document"
-    save_json(doc_path(slug), doc)
+    path = resolve_doc_path(slug)
+    if path is None:
+        path = doc_path(slug, "")
+    save_json(path, doc)
 
 
 def mint_part_code(doc: dict[str, Any]) -> str:
@@ -229,18 +378,38 @@ class Handler(SimpleHTTPRequestHandler):
                     "product": "sopr-documenter",
                     "house": "BIGBOX",
                     "port": PORT,
+                    "vault": True,
+                    "safe_box": str(SAFE_BOX),
                 },
             )
 
         if path == "/api/docs":
             return self._json(200, {"docs": list_docs()})
 
+        # vault browser (folders under safe_box) — must not fall through to static 404
+        if path in ("/api/vault", "/api/vault/"):
+            qs = parse_qs(urlparse(self.path).query)
+            folder = (qs.get("folder") or [""])[0]
+            return self._json(200, list_vault(folder))
+
         m = re.fullmatch(r"/api/docs/([^/]+)", path)
         if m:
             doc = load_doc(m.group(1))
             if not doc:
                 return self._json(404, {"ok": False, "error": "not found"})
-            return self._json(200, {"ok": True, "doc": doc})
+            p = resolve_doc_path(m.group(1))
+            folder = folder_of_path(p) if p else ""
+            return self._json(
+                200,
+                {
+                    "ok": True,
+                    "doc": doc,
+                    "folder": folder,
+                    "path": (
+                        str(p.relative_to(SAFE_BOX)).replace("\\", "/") if p else ""
+                    ),
+                },
+            )
 
         return super().do_GET()
 
@@ -254,14 +423,83 @@ class Handler(SimpleHTTPRequestHandler):
             if not name:
                 return self._json(400, {"ok": False, "error": "doc_name required"})
             slug = slugify(body.get("slug") or name)
-            path_f = doc_path(slug)
-            if path_f.is_file():
+            if resolve_doc_path(slug) is not None:
                 return self._json(409, {"ok": False, "error": "document exists", "slug": slug})
+            try:
+                folder = sanitize_folder(body.get("folder") or "") if body.get("folder") else ""
+            except ValueError as e:
+                return self._json(400, {"ok": False, "error": str(e)})
             doc = empty_doc(name, slug)
-            # starter loose section
             find_or_create_section(doc, "Loose / unbinned")
-            save_doc(doc)
-            return self._json(201, {"ok": True, "doc": doc})
+            path_f = doc_path(slug, folder)
+            save_json(path_f, doc)
+            return self._json(
+                201,
+                {
+                    "ok": True,
+                    "doc": doc,
+                    "folder": folder,
+                    "path": str(path_f.relative_to(SAFE_BOX)).replace("\\", "/"),
+                },
+            )
+
+        if path == "/api/vault/folders":
+            name = (body.get("name") or body.get("folder") or "").strip()
+            try:
+                fid = sanitize_folder(name)
+            except ValueError as e:
+                return self._json(400, {"ok": False, "error": str(e)})
+            if not fid:
+                return self._json(400, {"ok": False, "error": "folder name required"})
+            dest = SAFE_BOX / fid
+            if dest.exists():
+                return self._json(409, {"ok": False, "error": "folder exists", "id": fid})
+            dest.mkdir(parents=True, exist_ok=False)
+            return self._json(201, {"ok": True, "folder": {"id": fid, "name": fid}})
+
+        if path == "/api/vault/move":
+            slug = slugify(body.get("slug") or "")
+            try:
+                folder = sanitize_folder(body.get("folder") or "") if body.get("folder") else ""
+            except ValueError as e:
+                return self._json(400, {"ok": False, "error": str(e)})
+            src = resolve_doc_path(slug)
+            if src is None:
+                return self._json(404, {"ok": False, "error": "not found"})
+            dest = doc_path(slug, folder)
+            if src.resolve() == dest.resolve():
+                return self._json(200, {"ok": True, "slug": slug, "folder": folder})
+            if dest.exists():
+                return self._json(409, {"ok": False, "error": "target exists"})
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            src.rename(dest)
+            return self._json(
+                200,
+                {
+                    "ok": True,
+                    "slug": slug,
+                    "folder": folder,
+                    "path": str(dest.relative_to(SAFE_BOX)).replace("\\", "/"),
+                },
+            )
+
+        if path == "/api/vault/rename-folder":
+            try:
+                old = sanitize_folder(body.get("id") or body.get("folder") or "")
+                new = sanitize_folder(body.get("name") or body.get("new_name") or "")
+            except ValueError as e:
+                return self._json(400, {"ok": False, "error": str(e)})
+            if not old or not new:
+                return self._json(400, {"ok": False, "error": "id and name required"})
+            src = SAFE_BOX / old
+            if not src.is_dir():
+                return self._json(404, {"ok": False, "error": "folder not found"})
+            dest = SAFE_BOX / new
+            if new != old and dest.exists():
+                return self._json(409, {"ok": False, "error": "folder exists"})
+            if new != old:
+                src.rename(dest)
+            return self._json(200, {"ok": True, "folder": {"id": new, "name": new, "old_id": old}})
 
         m = re.fullmatch(r"/api/docs/([^/]+)/sections", path)
         if m:
@@ -409,10 +647,50 @@ class Handler(SimpleHTTPRequestHandler):
     def do_DELETE(self) -> None:  # noqa: N802
         u = urlparse(self.path)
         path = unquote(u.path)
+        # DELETE fragment (SPR-####) — part code never recycled; next_part keeps climbing
+        m = re.fullmatch(r"/api/docs/([^/]+)/parts/([^/]+)", path)
+        if m:
+            doc = load_doc(m.group(1))
+            if not doc:
+                return self._json(404, {"ok": False, "error": "not found"})
+            code = m.group(2)
+            parts = doc.setdefault("parts", {})
+            if code not in parts:
+                return self._json(404, {"ok": False, "error": "part not found"})
+            del parts[code]
+            for sec in (doc.get("sections") or {}).values():
+                pids = sec.get("part_ids") or []
+                sec["part_ids"] = [p for p in pids if p != code]
+            save_doc(doc)
+            return self._json(200, {"ok": True, "deleted": code, "doc": doc})
+
+        m = re.fullmatch(r"/api/vault/folders/([^/]+)", path)
+        if m:
+            try:
+                fid = sanitize_folder(m.group(1))
+            except ValueError as e:
+                return self._json(400, {"ok": False, "error": str(e)})
+            base = SAFE_BOX / fid
+            if not base.is_dir():
+                return self._json(404, {"ok": False, "error": "folder not found"})
+            # refuse if any files remain
+            leftovers = [x.name for x in base.iterdir()]
+            if leftovers:
+                return self._json(
+                    400,
+                    {
+                        "ok": False,
+                        "error": "folder not empty — move or delete documents first",
+                        "items": leftovers[:10],
+                    },
+                )
+            base.rmdir()
+            return self._json(200, {"ok": True, "deleted": fid})
+
         m = re.fullmatch(r"/api/docs/([^/]+)", path)
         if m:
-            p = doc_path(m.group(1))
-            if p.is_file():
+            p = resolve_doc_path(m.group(1))
+            if p is not None and p.is_file():
                 p.unlink()
                 return self._json(200, {"ok": True})
             return self._json(404, {"ok": False, "error": "not found"})
@@ -422,6 +700,54 @@ class Handler(SimpleHTTPRequestHandler):
         u = urlparse(self.path)
         path = unquote(u.path)
         body = self._read_json()
+        # Rename document display name and/or file slug (keeps folder place)
+        m = re.fullmatch(r"/api/docs/([^/]+)", path)
+        if m:
+            old_slug = m.group(1)
+            src = resolve_doc_path(old_slug)
+            if src is None:
+                return self._json(404, {"ok": False, "error": "not found"})
+            doc = ensure_doc_shape(load_json(src))
+            folder = folder_of_path(src)
+            name = body.get("doc_name") or body.get("name")
+            if name is not None:
+                name = str(name).strip()
+                if not name:
+                    return self._json(400, {"ok": False, "error": "doc_name required"})
+                doc["doc_name"] = name
+            new_slug = body.get("slug")
+            if new_slug is not None:
+                ns = slugify(str(new_slug).strip())
+                if ns != old_slug:
+                    if resolve_doc_path(ns) is not None:
+                        return self._json(
+                            409, {"ok": False, "error": "slug exists", "slug": ns}
+                        )
+                    doc["slug"] = ns
+                    dest = doc_path(ns, folder)
+                    save_json(dest, doc)
+                    if src.resolve() != dest.resolve():
+                        src.unlink()
+                    return self._json(
+                        200,
+                        {
+                            "ok": True,
+                            "doc": doc,
+                            "folder": folder,
+                            "path": str(dest.relative_to(SAFE_BOX)).replace("\\", "/"),
+                        },
+                    )
+            save_json(src, doc)
+            return self._json(
+                200,
+                {
+                    "ok": True,
+                    "doc": doc,
+                    "folder": folder,
+                    "path": str(src.relative_to(SAFE_BOX)).replace("\\", "/"),
+                },
+            )
+
         m = re.fullmatch(r"/api/docs/([^/]+)/parts/([^/]+)", path)
         if m:
             doc = load_doc(m.group(1))

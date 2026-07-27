@@ -4,7 +4,7 @@
   "version": 1,
   "doc_name": "SMOKE TEST",
   "slug": "SMOKE-TEST",
-  "next_part": 5,
+  "next_part": 7,
   "next_section": 4,
   "section_order": [
     "sec-0001",
@@ -16,16 +16,18 @@
       "section_id": "sec-0001",
       "label": "Why we say export",
       "part_ids": [
+        "SPR-0006",
         "SPR-0004",
-        "SPR-0002"
+        "SPR-0005"
       ]
     },
     "sec-0002": {
       "section_id": "sec-0002",
       "label": "Glass to paper",
       "part_ids": [
-        "SPR-0003",
-        "SPR-0001"
+        "SPR-0002",
+        "SPR-0001",
+        "SPR-0003"
       ]
     },
     "sec-0003": {
@@ -44,7 +46,7 @@
     "SPR-0002": {
       "part_code": "SPR-0002",
       "leaf": "glassbox black box",
-      "section_id": "sec-0001",
+      "section_id": "sec-0002",
       "created_at": 1785027396.0824735
     },
     "SPR-0003": {
@@ -58,7 +60,34 @@
       "leaf": "words are cool",
       "section_id": "sec-0001",
       "created_at": 1785029843.5822344
+    },
+    "SPR-0005": {
+      "part_code": "SPR-0005",
+      "leaf": "documentation! FUN!",
+      "section_id": "sec-0001",
+      "created_at": 1785030198.2393906
+    },
+    "SPR-0006": {
+      "part_code": "SPR-0006",
+      "leaf": "c o d e   i s   i m p o r t a n t",
+      "section_id": "sec-0001",
+      "created_at": 1785032280.345574,
+      "as_pre": true
     }
   },
-  "updated_at": 1785029843.5822344
+  "updated_at": 1785032289.3995996,
+  "tps_chips": [
+    {
+      "chip_id": "001-OT-008.1.0",
+      "export_id": "001-OT-008.1",
+      "first_seen_at": 1785030456.6173623,
+      "last_seen_at": 1785030456.6173623
+    },
+    {
+      "chip_id": "001-OT-008.1.1",
+      "export_id": "001-OT-008.1",
+      "first_seen_at": 1785030700.138376,
+      "last_seen_at": 1785030700.138376
+    }
+  ]
 }
