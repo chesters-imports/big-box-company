@@ -189,22 +189,75 @@
             >
           </div>
           <div class="composer" id="composer">
-            <div class="composer-label">NEW FRAGMENT</div>
-            <textarea
-              id="composer-leaf"
-              rows="3"
-              placeholder="Type the leaf here. Store → drops below. Composer stays. (Ctrl+Enter)"
-            ></textarea>
+            <div class="composer-label-row">
+              <div class="composer-label">NEW FRAGMENT</div>
+              <div class="block-chips" id="composer-block-chips" role="group" aria-label="Fragment type">
+                <button type="button" class="block-chip on" data-block="text">Text</button>
+                <button type="button" class="block-chip" data-block="image">Image</button>
+                <button type="button" class="block-chip" data-block="table">Table</button>
+              </div>
+            </div>
+            <!-- text -->
+            <div id="composer-pane-text" class="composer-pane">
+              <textarea
+                id="composer-leaf"
+                rows="3"
+                placeholder="Type the leaf here. Store → drops below. Composer stays. (Ctrl+Enter)"
+              ></textarea>
+            </div>
+            <!-- image -->
+            <div id="composer-pane-image" class="composer-pane" hidden>
+              <div class="composer-image-row">
+                <input type="file" id="composer-image-file" accept="image/*" />
+                <span class="muted small" id="composer-image-status">No image selected</span>
+              </div>
+              <input
+                type="text"
+                id="composer-image-caption"
+                class="composer-caption"
+                placeholder="Caption (optional)"
+              />
+              <div id="composer-image-preview" class="composer-image-preview" hidden></div>
+            </div>
+            <!-- table -->
+            <div id="composer-pane-table" class="composer-pane" hidden>
+              <div class="table-toolbar" id="composer-table-toolbar">
+                <button type="button" class="btn" data-tbl="add-row">+ Row</button>
+                <button type="button" class="btn" data-tbl="add-col">+ Col</button>
+                <button type="button" class="btn" data-tbl="del-row">− Row</button>
+                <button type="button" class="btn" data-tbl="del-col">− Col</button>
+                <label class="composer-pre-tick" title="First row is column headers">
+                  <input type="checkbox" id="composer-table-header" checked />
+                  Header row
+                </label>
+                <button type="button" class="btn" data-tbl="paste" title="Paste TSV/CSV from Excel or Sheets">
+                  Paste grid
+                </button>
+              </div>
+              <div class="table-scroll">
+                <table class="sopr-grid" id="composer-table" aria-label="New table"></table>
+              </div>
+              <input
+                type="text"
+                id="composer-table-note"
+                class="composer-caption"
+                placeholder="Optional table note / title (not a second notes field on text)"
+              />
+            </div>
             <div class="composer-actions">
               <button type="button" class="btn primary" id="btn-store">
                 Store fragment
               </button>
-              <label class="composer-pre-tick" title="ASCII diagrams, layouts, code — prints as pre">
+              <label
+                class="composer-pre-tick"
+                id="composer-as-pre-wrap"
+                title="ASCII diagrams, layouts, code — prints as pre"
+              >
                 <input type="checkbox" id="composer-as-pre" />
                 Display as code / &lt;pre&gt;
               </label>
               <span class="muted small"
-                >no notes field · note? another sopr · part code on store</span
+                >text · image · table · stable SPR · resort later</span
               >
             </div>
           </div>
@@ -235,6 +288,34 @@
         <article class="print-page" id="print-page" aria-label="Document printout">
           <!-- filled by app.js -->
         </article>
+      </div>
+
+      <!-- Table edit modal (existing SPR table frags) -->
+      <div id="table-edit-backdrop" class="vault-backdrop" hidden>
+        <div class="table-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="table-edit-title">
+          <div class="vault-head">
+            <strong id="table-edit-title">Edit table</strong>
+            <button type="button" class="btn" id="table-edit-close">Close</button>
+          </div>
+          <div class="table-toolbar" id="table-edit-toolbar">
+            <button type="button" class="btn" data-ted="add-row">+ Row</button>
+            <button type="button" class="btn" data-ted="add-col">+ Col</button>
+            <button type="button" class="btn" data-ted="del-row">− Row</button>
+            <button type="button" class="btn" data-ted="del-col">− Col</button>
+            <label class="composer-pre-tick">
+              <input type="checkbox" id="table-edit-header" checked />
+              Header row
+            </label>
+            <button type="button" class="btn" data-ted="paste">Paste grid</button>
+          </div>
+          <div class="table-scroll table-edit-scroll">
+            <table class="sopr-grid" id="table-edit-grid"></table>
+          </div>
+          <div class="table-edit-actions">
+            <input type="text" id="table-edit-note" class="composer-caption" placeholder="Optional note" />
+            <button type="button" class="btn primary" id="table-edit-save">Save table</button>
+          </div>
+        </div>
       </div>
 
       <footer class="status" id="status">Big Box Company · sopr Documenter</footer>

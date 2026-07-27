@@ -1,0 +1,70 @@
+{
+  "house": "BIGBOX",
+  "product": "sopr-documenter",
+  "version": 1,
+  "doc_name": "Block Smoke",
+  "slug": "Block-Smoke",
+  "next_part": 4,
+  "next_section": 2,
+  "section_order": [
+    "sec-0001"
+  ],
+  "sections": {
+    "sec-0001": {
+      "section_id": "sec-0001",
+      "label": "Loose / unbinned",
+      "part_ids": [
+        "SPR-0003",
+        "SPR-0002",
+        "SPR-0001"
+      ]
+    }
+  },
+  "parts": {
+    "SPR-0001": {
+      "part_code": "SPR-0001",
+      "block": "table",
+      "leaf": "Demo table",
+      "section_id": "sec-0001",
+      "created_at": 1785160226.7194285,
+      "as_pre": false,
+      "table": {
+        "rows": [
+          [
+            "Phase",
+            "Owner"
+          ],
+          [
+            "Art",
+            "Sam"
+          ],
+          [
+            "Code",
+            "Dev"
+          ]
+        ],
+        "header": true
+      }
+    },
+    "SPR-0002": {
+      "part_code": "SPR-0002",
+      "block": "image",
+      "leaf": "A caption",
+      "section_id": "sec-0001",
+      "created_at": 1785160226.736104,
+      "as_pre": false,
+      "image_id": "m.2b9835255c3c858d",
+      "image_name": ""
+    },
+    "SPR-0003": {
+      "part_code": "SPR-0003",
+      "block": "text",
+      "leaf": "plain scrap",
+      "section_id": "sec-0001",
+      "created_at": 1785160226.741105,
+      "as_pre": false
+    }
+  },
+  "tps_chips": [],
+  "updated_at": 1785160226.741105
+}

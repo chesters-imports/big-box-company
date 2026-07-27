@@ -9,8 +9,11 @@ Part codes (SPR-####) are stable; section membership is separate.
 
 from __future__ import annotations
 
+import base64
+import binascii
 import json
 import re
+import secrets
 import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -20,15 +23,19 @@ from urllib.parse import parse_qs, unquote, urlparse
 BOX_SYS = Path(__file__).resolve().parent
 PROD = BOX_SYS.parent
 SAFE_BOX = PROD / "safe_box"
+MEDIA_BOX = SAFE_BOX / "_media"
 HOST = "127.0.0.1"
 PORT = 42950  # BBC · sopr — not DATBOX toys
 
 DOC_EXT = ".sopr"
 PART_PREFIX = "SPR"
+BLOCK_TYPES = frozenset({"text", "image", "table"})
+IMAGE_MAX_BYTES = 12 * 1024 * 1024  # 12 MiB local ROM
 
 
 def ensure_dirs() -> None:
     SAFE_BOX.mkdir(parents=True, exist_ok=True)
+    MEDIA_BOX.mkdir(parents=True, exist_ok=True)
 
 
 def slugify(name: str) -> str:
@@ -139,11 +146,116 @@ def empty_doc(doc_name: str, slug: str) -> dict[str, Any]:
     }
 
 
+def normalize_part(part: dict[str, Any]) -> dict[str, Any]:
+    """Ensure block type + payloads on every part (old files default to text)."""
+    if not isinstance(part, dict):
+        return part
+    block = str(part.get("block") or "text").strip().lower()
+    if block not in BLOCK_TYPES:
+        block = "text"
+    part["block"] = block
+    if block == "text":
+        part.setdefault("leaf", "")
+        part["as_pre"] = bool(part.get("as_pre"))
+    elif block == "image":
+        part.setdefault("leaf", "")  # caption
+        part.setdefault("image_id", "")
+        part.setdefault("image_name", "")
+        part["as_pre"] = False
+    elif block == "table":
+        part.setdefault("leaf", "")  # optional title / note
+        tbl = part.get("table")
+        if not isinstance(tbl, dict):
+            tbl = {}
+        rows = tbl.get("rows")
+        if not isinstance(rows, list) or not rows:
+            rows = [["", ""], ["", ""]]
+        clean: list[list[str]] = []
+        for row in rows:
+            if isinstance(row, list):
+                clean.append([str(c if c is not None else "") for c in row])
+            else:
+                clean.append([str(row)])
+        # rectangularize
+        width = max((len(r) for r in clean), default=2)
+        width = max(1, width)
+        for r in clean:
+            while len(r) < width:
+                r.append("")
+            del r[width:]
+        part["table"] = {
+            "rows": clean,
+            "header": bool(tbl.get("header", True)),
+        }
+        part["as_pre"] = False
+    return part
+
+
 def ensure_doc_shape(doc: dict[str, Any]) -> dict[str, Any]:
-    """Migrate older .sopr files that predate tps_chips."""
+    """Migrate older .sopr files that predate tps_chips / block types."""
     if "tps_chips" not in doc or not isinstance(doc.get("tps_chips"), list):
         doc["tps_chips"] = []
+    parts = doc.get("parts")
+    if isinstance(parts, dict):
+        for code, part in list(parts.items()):
+            if isinstance(part, dict):
+                parts[code] = normalize_part(part)
     return doc
+
+
+def empty_table(rows: int = 3, cols: int = 3) -> dict[str, Any]:
+    return {
+        "header": True,
+        "rows": [["" for _ in range(cols)] for _ in range(rows)],
+    }
+
+
+def mint_media_id() -> str:
+    return "m." + secrets.token_hex(8)
+
+
+def media_paths(media_id: str) -> tuple[Path, Path]:
+    safe = re.sub(r"[^\w.\-]+", "", media_id or "")
+    if not safe.startswith("m."):
+        raise ValueError("invalid media id")
+    return MEDIA_BOX / f"{safe}.bin", MEDIA_BOX / f"{safe}.json"
+
+
+def save_media_bytes(
+    raw: bytes,
+    *,
+    content_type: str,
+    filename: str = "",
+) -> dict[str, Any]:
+    if not raw:
+        raise ValueError("empty image")
+    if len(raw) > IMAGE_MAX_BYTES:
+        raise ValueError(f"image too large (max {IMAGE_MAX_BYTES // (1024 * 1024)} MiB)")
+    mid = mint_media_id()
+    bin_p, meta_p = media_paths(mid)
+    bin_p.write_bytes(raw)
+    meta = {
+        "media_id": mid,
+        "content_type": (content_type or "application/octet-stream").split(";")[0].strip(),
+        "filename": (filename or "").strip()[:200],
+        "bytes": len(raw),
+        "created_at": time.time(),
+    }
+    save_json(meta_p, meta)
+    return meta
+
+
+def load_media_meta(media_id: str) -> dict[str, Any] | None:
+    try:
+        bin_p, meta_p = media_paths(media_id)
+    except ValueError:
+        return None
+    if not meta_p.is_file() or not bin_p.is_file():
+        return None
+    try:
+        return load_json(meta_p)
+    except (OSError, json.JSONDecodeError):
+        return None
 
 
 def record_tps_chip(
@@ -411,6 +523,26 @@ class Handler(SimpleHTTPRequestHandler):
                 },
             )
 
+        m = re.fullmatch(r"/api/media/([^/]+)", path)
+        if m:
+            mid = m.group(1)
+            try:
+                bin_p, meta_p = media_paths(mid)
+            except ValueError:
+                return self._json(400, {"ok": False, "error": "invalid media id"})
+            if not bin_p.is_file():
+                return self._json(404, {"ok": False, "error": "not found"})
+            meta = load_media_meta(mid) or {}
+            raw = bin_p.read_bytes()
+            ctype = meta.get("content_type") or "application/octet-stream"
+            self.send_response(200)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(raw)))
+            self.send_header("Cache-Control", "private, max-age=86400")
+            self.end_headers()
+            self.wfile.write(raw)
+            return
+
         return super().do_GET()
 
     def do_POST(self) -> None:  # noqa: N802
@@ -513,14 +645,41 @@ class Handler(SimpleHTTPRequestHandler):
             save_doc(doc)
             return self._json(200, {"ok": True, "section_id": sid, "doc": doc})
 
+        if path == "/api/media":
+            # Base64 image upload → safe_box/_media (local ROM vault)
+            b64 = body.get("data_base64") or body.get("data") or ""
+            if isinstance(b64, str) and "," in b64 and b64.strip().startswith("data:"):
+                b64 = b64.split(",", 1)[1]
+            try:
+                raw = base64.b64decode(b64, validate=False)
+            except (binascii.Error, ValueError):
+                return self._json(400, {"ok": False, "error": "invalid base64"})
+            try:
+                meta = save_media_bytes(
+                    raw,
+                    content_type=str(body.get("content_type") or "image/png"),
+                    filename=str(body.get("filename") or ""),
+                )
+            except ValueError as e:
+                return self._json(400, {"ok": False, "error": str(e)})
+            return self._json(
+                201,
+                {
+                    "ok": True,
+                    "media": meta,
+                    "url": "/api/media/" + meta["media_id"],
+                },
+            )
+
         m = re.fullmatch(r"/api/docs/([^/]+)/parts", path)
         if m:
             doc = load_doc(m.group(1))
             if not doc:
                 return self._json(404, {"ok": False, "error": "not found"})
-            leaf = (body.get("leaf") or "").strip()
-            if not leaf:
-                return self._json(400, {"ok": False, "error": "leaf required"})
+            block = str(body.get("block") or "text").strip().lower()
+            if block not in BLOCK_TYPES:
+                return self._json(400, {"ok": False, "error": "invalid block type"})
+            leaf = str(body.get("leaf") or "").strip()
             sid = body.get("section_id") or ""
             label = body.get("section_label") or body.get("label")
             if sid and sid in (doc.get("sections") or {}):
@@ -528,25 +687,45 @@ class Handler(SimpleHTTPRequestHandler):
             else:
                 sid = find_or_create_section(doc, label or "Loose / unbinned")
             code = mint_part_code(doc)
-            # as_pre: print/compose as <pre> (ASCII diagrams, code layouts)
             as_pre = bool(
-                body.get("as_pre")
-                or body.get("pre")
-                or body.get("as_code")
+                body.get("as_pre") or body.get("pre") or body.get("as_code")
             )
-            part = {
+            part: dict[str, Any] = {
                 "part_code": code,
+                "block": block,
                 "leaf": leaf,
                 "section_id": sid,
                 "created_at": time.time(),
-                "as_pre": as_pre,
+                "as_pre": as_pre if block == "text" else False,
             }
+            if block == "text":
+                if not leaf:
+                    return self._json(400, {"ok": False, "error": "leaf required"})
+            elif block == "image":
+                image_id = str(body.get("image_id") or "").strip()
+                if not image_id or load_media_meta(image_id) is None:
+                    return self._json(
+                        400, {"ok": False, "error": "valid image_id required"}
+                    )
+                part["image_id"] = image_id
+                part["image_name"] = str(body.get("image_name") or "").strip()[:200]
+            elif block == "table":
+                tbl = body.get("table")
+                if not isinstance(tbl, dict):
+                    tbl = empty_table()
+                part["table"] = tbl
+                part = normalize_part(part)
+                # reject completely empty tables (all blank cells)
+                rows = (part.get("table") or {}).get("rows") or []
+                if not any(str(c).strip() for r in rows for c in r):
+                    return self._json(
+                        400, {"ok": False, "error": "table has no cell content"}
+                    )
+            part = normalize_part(part)
             doc.setdefault("parts", {})[code] = part
             sec = doc["sections"][sid]
-            # newest under composer: insert at front of part_ids
             pids = sec.setdefault("part_ids", [])
             pids.insert(0, code)
-            # Optional: client peeked Machina cord — record chip on doc only (no per-frag)
             chip_id = str(body.get("chip_id") or body.get("tps_chip") or "").strip()
             export_id = str(body.get("export_id") or body.get("tps_export") or "").strip()
             chip_row = None
@@ -757,17 +936,32 @@ class Handler(SimpleHTTPRequestHandler):
             parts = doc.get("parts") or {}
             if code not in parts:
                 return self._json(404, {"ok": False, "error": "part not found"})
+            part = normalize_part(parts[code])
             leaf = body.get("leaf")
             if leaf is not None:
-                parts[code]["leaf"] = str(leaf)
+                part["leaf"] = str(leaf)
             if "as_pre" in body or "pre" in body or "as_code" in body:
-                parts[code]["as_pre"] = bool(
-                    body.get("as_pre")
-                    if "as_pre" in body
-                    else body.get("pre")
-                    if "pre" in body
-                    else body.get("as_code")
-                )
+                if part.get("block") == "text":
+                    part["as_pre"] = bool(
+                        body.get("as_pre")
+                        if "as_pre" in body
+                        else body.get("pre")
+                        if "pre" in body
+                        else body.get("as_code")
+                    )
+            if "table" in body and isinstance(body.get("table"), dict):
+                part["table"] = body["table"]
+                part["block"] = "table"
+            if "image_id" in body:
+                iid = str(body.get("image_id") or "").strip()
+                if iid and load_media_meta(iid) is None:
+                    return self._json(400, {"ok": False, "error": "invalid image_id"})
+                if iid:
+                    part["image_id"] = iid
+                    part["block"] = "image"
+            if "image_name" in body:
+                part["image_name"] = str(body.get("image_name") or "").strip()[:200]
+            parts[code] = normalize_part(part)
             # never rename part_code
             save_doc(doc)
             return self._json(200, {"ok": True, "part": parts[code], "doc": doc})

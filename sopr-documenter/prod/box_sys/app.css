@@ -606,12 +606,46 @@ select {
   flex-shrink: 0;
 }
 
+.composer-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
 .composer-label {
   font-size: 10px;
   font-weight: 600;
   color: var(--muted);
-  margin-bottom: 6px;
   letter-spacing: 0.04em;
+}
+
+.block-chips {
+  display: flex;
+  gap: 4px;
+}
+
+.block-chip {
+  font: inherit;
+  font-size: 11px;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.block-chip.on {
+  background: var(--button);
+  color: var(--button-text);
+  border-color: var(--button);
+}
+
+.composer-pane {
+  margin-bottom: 4px;
 }
 
 .composer textarea {
@@ -623,6 +657,180 @@ select {
   background: var(--white);
   font: inherit;
   line-height: 1.4;
+}
+
+.composer-caption {
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  font: inherit;
+}
+
+.composer-image-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.composer-image-preview {
+  margin-top: 8px;
+  max-width: 100%;
+}
+
+.composer-image-preview img {
+  max-width: min(100%, 360px);
+  max-height: 200px;
+  border: 1px solid var(--border);
+  background: var(--white);
+}
+
+.table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.table-toolbar .btn {
+  font-size: 11px;
+  padding: 3px 8px;
+}
+
+.table-scroll {
+  overflow: auto;
+  max-height: 240px;
+  border: 1px solid var(--border);
+  background: var(--white);
+}
+
+.sopr-grid {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 12px;
+}
+
+.sopr-grid th,
+.sopr-grid td {
+  border: 1px solid var(--border);
+  padding: 0;
+  min-width: 88px;
+  vertical-align: top;
+}
+
+.sopr-grid th {
+  background: var(--section-head);
+  font-weight: 600;
+}
+
+.sopr-grid input.cell {
+  width: 100%;
+  min-width: 80px;
+  border: none;
+  padding: 6px 8px;
+  font: inherit;
+  background: transparent;
+  color: var(--text);
+}
+
+.sopr-grid input.cell:focus {
+  outline: 2px solid var(--select);
+  outline-offset: -2px;
+  background: #fff;
+}
+
+.part-table-wrap {
+  overflow: auto;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  background: var(--white);
+}
+
+.part-table-wrap .sopr-grid th,
+.part-table-wrap .sopr-grid td {
+  padding: 6px 8px;
+  min-width: 64px;
+}
+
+.part-image {
+  max-width: min(100%, 480px);
+  max-height: 320px;
+  border: 1px solid var(--border);
+  display: block;
+  background: var(--white);
+}
+
+.part-caption {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.tag-block {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--button);
+  border: 1px solid var(--border);
+  padding: 0 4px;
+  text-transform: uppercase;
+}
+
+.table-edit-dialog {
+  background: var(--white);
+  border: 1px solid var(--border);
+  width: min(920px, 96vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.table-edit-scroll {
+  max-height: 50vh;
+  margin: 0 12px;
+}
+
+.table-edit-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.table-edit-actions .composer-caption {
+  margin: 0;
+  flex: 1;
+}
+
+.print-frag img.part-image {
+  max-width: 100%;
+  height: auto;
+}
+
+.kanban-card .part-leaf {
+  max-height: 4.5em;
+  overflow: hidden;
+}
+
+.kanban-card .mini-table {
+  font-size: 10px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.kanban-card .mini-table td,
+.kanban-card .mini-table th {
+  border: 1px solid var(--border);
+  padding: 2px 4px;
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .composer-actions {

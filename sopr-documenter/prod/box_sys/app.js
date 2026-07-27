@@ -11,6 +11,10 @@
     activeSectionId: null,
     view: "empty", // empty | doc | kanban | print
     lastStored: null,
+    composerBlock: "text", // text | image | table
+    composerImage: null, // { image_id, image_name, url } after upload
+    composerTable: { header: true, rows: [["", "", ""], ["", "", ""], ["", "", ""]] },
+    tableEdit: { open: false, partCode: null, table: null, note: "" },
     vault: {
       open: false,
       folder: "",
@@ -20,6 +24,210 @@
       mode: "open", // open | manage
     },
   };
+
+  function partBlock(p) {
+    const b = (p && p.block) || "text";
+    return b === "image" || b === "table" ? b : "text";
+  }
+
+  function cloneTable(t) {
+    const src = t && typeof t === "object" ? t : {};
+    const rows = Array.isArray(src.rows) ? src.rows : [["", ""], ["", ""]];
+    return {
+      header: src.header !== false,
+      rows: rows.map((r) =>
+        Array.isArray(r) ? r.map((c) => String(c == null ? "" : c)) : [String(r)]
+      ),
+    };
+  }
+
+  function rectangularize(table) {
+    const t = cloneTable(table);
+    let w = 1;
+    t.rows.forEach((r) => {
+      w = Math.max(w, r.length);
+    });
+    t.rows = t.rows.map((r) => {
+      const row = r.slice();
+      while (row.length < w) row.push("");
+      return row.slice(0, w);
+    });
+    if (!t.rows.length) t.rows = [Array(w).fill("")];
+    return t;
+  }
+
+  function tableHasContent(table) {
+    const t = rectangularize(table);
+    return t.rows.some((r) => r.some((c) => String(c).trim()));
+  }
+
+  function renderGridInto(tableEl, table, opts) {
+    const t = rectangularize(table);
+    const editable = !opts || opts.editable !== false;
+    tableEl.innerHTML = "";
+    t.rows.forEach((row, ri) => {
+      const tr = document.createElement("tr");
+      const isHead = t.header && ri === 0;
+      row.forEach((cell, ci) => {
+        const cellEl = document.createElement(isHead ? "th" : "td");
+        if (editable) {
+          const inp = document.createElement("input");
+          inp.type = "text";
+          inp.className = "cell";
+          inp.value = cell;
+          inp.dataset.r = String(ri);
+          inp.dataset.c = String(ci);
+          inp.addEventListener("input", () => {
+            t.rows[ri][ci] = inp.value;
+            if (opts && typeof opts.onChange === "function") opts.onChange(t);
+          });
+          inp.addEventListener("keydown", (e) => {
+            if (e.key === "Tab") {
+              e.preventDefault();
+              const inputs = tableEl.querySelectorAll("input.cell");
+              const list = Array.from(inputs);
+              const idx = list.indexOf(inp);
+              const next = e.shiftKey ? list[idx - 1] : list[idx + 1];
+              if (next) next.focus();
+            } else if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              const next = tableEl.querySelector(
+                'input.cell[data-r="' + (ri + 1) + '"][data-c="' + ci + '"]'
+              );
+              if (next) next.focus();
+            }
+          });
+          cellEl.appendChild(inp);
+        } else {
+          cellEl.textContent = cell;
+        }
+        tr.appendChild(cellEl);
+      });
+      tableEl.appendChild(tr);
+    });
+    return t;
+  }
+
+  function readGridFrom(tableEl, header) {
+    const rows = [];
+    tableEl.querySelectorAll("tr").forEach((tr) => {
+      const row = [];
+      tr.querySelectorAll("input.cell").forEach((inp) => {
+        row.push(inp.value);
+      });
+      if (!row.length) {
+        tr.querySelectorAll("th, td").forEach((td) => {
+          row.push(td.textContent || "");
+        });
+      }
+      rows.push(row);
+    });
+    return rectangularize({ header: !!header, rows: rows.length ? rows : [["", ""]] });
+  }
+
+  function parseGridPaste(text) {
+    const lines = String(text || "")
+      .replace(/\r\n/g, "\n")
+      .replace(/\r/g, "\n")
+      .split("\n")
+      .filter((ln, i, arr) => ln.length || i < arr.length - 1);
+    while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+    if (!lines.length) return null;
+    const rows = lines.map((ln) => {
+      if (ln.indexOf("\t") >= 0) return ln.split("\t");
+      if (ln.indexOf(",") >= 0) {
+        // simple CSV (no quote hell) — enough for Sheets paste of plain cells
+        return ln.split(",");
+      }
+      return [ln];
+    });
+    return rectangularize({ header: true, rows });
+  }
+
+  function tableHtml(table, opts) {
+    const t = rectangularize(table);
+    const printable = opts && opts.print;
+    let html = '<div class="part-table-wrap"><table class="sopr-grid">';
+    t.rows.forEach((row, ri) => {
+      const isHead = t.header && ri === 0;
+      html += "<tr>";
+      row.forEach((cell) => {
+        const tag = isHead ? "th" : "td";
+        html +=
+          "<" +
+          tag +
+          ">" +
+          escapeHtml(cell) +
+          "</" +
+          tag +
+          ">";
+      });
+      html += "</tr>";
+    });
+    html += "</table></div>";
+    if (!printable && opts && opts.note) {
+      html +=
+        '<div class="part-caption">' + escapeHtml(opts.note) + "</div>";
+    }
+    return html;
+  }
+
+  function imageUrl(imageId) {
+    return "/api/media/" + encodeURIComponent(imageId || "");
+  }
+
+  function setComposerBlock(block) {
+    state.composerBlock = block === "image" || block === "table" ? block : "text";
+    document.querySelectorAll("#composer-block-chips .block-chip").forEach((btn) => {
+      btn.classList.toggle("on", btn.getAttribute("data-block") === state.composerBlock);
+    });
+    const paneText = $("composer-pane-text");
+    const paneImg = $("composer-pane-image");
+    const paneTbl = $("composer-pane-table");
+    const preWrap = $("composer-as-pre-wrap");
+    if (paneText) paneText.hidden = state.composerBlock !== "text";
+    if (paneImg) paneImg.hidden = state.composerBlock !== "image";
+    if (paneTbl) paneTbl.hidden = state.composerBlock !== "table";
+    if (preWrap) preWrap.hidden = state.composerBlock !== "text";
+    if (state.composerBlock === "table") {
+      syncComposerTable();
+    }
+  }
+
+  function syncComposerTable() {
+    const el = $("composer-table");
+    const hdr = $("composer-table-header");
+    if (!el) return;
+    if (hdr) state.composerTable.header = !!hdr.checked;
+    state.composerTable = renderGridInto(el, state.composerTable, {
+      editable: true,
+      onChange: (t) => {
+        state.composerTable = t;
+      },
+    });
+  }
+
+  async function uploadImageFile(file) {
+    if (!file) return null;
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    const b64 = btoa(binary);
+    const data = await api("POST", "/api/media", {
+      data_base64: b64,
+      content_type: file.type || "image/png",
+      filename: file.name || "",
+    });
+    return {
+      image_id: data.media.media_id,
+      image_name: data.media.filename || file.name || "",
+      url: data.url || imageUrl(data.media.media_id),
+    };
+  }
 
   /** Time Machina cord — peek only. Offline = silent skip. */
   const MACHINA_CORD =
@@ -610,25 +818,48 @@
 
   async function storeFragment() {
     if (!state.doc || !state.activeSectionId) return;
-    const leaf = $("composer-leaf").value.trim();
-    if (!leaf) {
-      setStatus("Empty leaf — nothing stored.");
-      return;
-    }
-    // Listener: peek Machina once; chip goes on the *document* bin only
     const peek = await peekMachinaCord();
-    const asPre = !!(
-      $("composer-as-pre") && $("composer-as-pre").checked
-    );
+    const block = state.composerBlock || "text";
     const body = {
       section_id: state.activeSectionId,
-      leaf: leaf,
-      as_pre: asPre,
+      block: block,
     };
     if (peek && peek.chip_id) {
       body.chip_id = peek.chip_id;
       body.export_id = peek.export_id || "";
     }
+
+    if (block === "text") {
+      const leaf = $("composer-leaf").value.trim();
+      if (!leaf) {
+        setStatus("Empty leaf — nothing stored.");
+        return;
+      }
+      body.leaf = leaf;
+      body.as_pre = !!(
+        $("composer-as-pre") && $("composer-as-pre").checked
+      );
+    } else if (block === "image") {
+      if (!state.composerImage || !state.composerImage.image_id) {
+        setStatus("Choose an image first.");
+        return;
+      }
+      body.image_id = state.composerImage.image_id;
+      body.image_name = state.composerImage.image_name || "";
+      body.leaf = ($("composer-image-caption") && $("composer-image-caption").value.trim()) || "";
+    } else if (block === "table") {
+      const hdr = $("composer-table-header");
+      const grid = $("composer-table");
+      const table = readGridFrom(grid, hdr && hdr.checked);
+      if (!tableHasContent(table)) {
+        setStatus("Table is empty — type cells first.");
+        return;
+      }
+      body.table = table;
+      body.leaf =
+        ($("composer-table-note") && $("composer-table-note").value.trim()) || "";
+    }
+
     try {
       const data = await api(
         "POST",
@@ -637,17 +868,38 @@
       );
       state.doc = data.doc;
       state.lastStored = data.part.part_code;
-      $("composer-leaf").value = "";
-      // keep as_pre tick if you are stacking diagrams
-      $("composer-leaf").focus();
+      if (block === "text") {
+        $("composer-leaf").value = "";
+        $("composer-leaf").focus();
+      } else if (block === "image") {
+        state.composerImage = null;
+        if ($("composer-image-file")) $("composer-image-file").value = "";
+        if ($("composer-image-caption")) $("composer-image-caption").value = "";
+        if ($("composer-image-status"))
+          $("composer-image-status").textContent = "No image selected";
+        if ($("composer-image-preview")) {
+          $("composer-image-preview").hidden = true;
+          $("composer-image-preview").innerHTML = "";
+        }
+      } else if (block === "table") {
+        state.composerTable = {
+          header: true,
+          rows: [
+            ["", "", ""],
+            ["", "", ""],
+            ["", "", ""],
+          ],
+        };
+        if ($("composer-table-note")) $("composer-table-note").value = "";
+        if ($("composer-table-header")) $("composer-table-header").checked = true;
+        syncComposerTable();
+      }
       render();
       let msg =
-        "Stored " + data.part.part_code + " · composer stays · stack grew";
-      if (asPre) msg += " · pre";
+        "Stored " + data.part.part_code + " · " + block + " · stack grew";
+      if (block === "text" && body.as_pre) msg += " · pre";
       if (data.tps_chip && data.tps_chip.chip_id) {
         msg += " · doc chip " + data.tps_chip.chip_id;
-      } else if (!peek) {
-        msg += " · (no Machina chip)";
       }
       setStatus(msg);
     } catch (e) {
@@ -683,6 +935,34 @@
     if (!state.doc || !state.slug || !partCode) return;
     const p = (state.doc.parts || {})[partCode];
     if (!p) return;
+    const block = partBlock(p);
+    if (block === "table") {
+      openTableEdit(partCode);
+      return;
+    }
+    if (block === "image") {
+      const next = window.prompt(
+        "Edit caption for " + partCode + ":",
+        p.leaf || ""
+      );
+      if (next === null) return;
+      try {
+        const data = await api(
+          "PUT",
+          "/api/docs/" +
+            encodeURIComponent(state.slug) +
+            "/parts/" +
+            encodeURIComponent(partCode),
+          { leaf: next }
+        );
+        state.doc = data.doc;
+        render();
+        setStatus("Caption updated " + partCode);
+      } catch (e) {
+        alert(e.message);
+      }
+      return;
+    }
     const next = window.prompt("Edit fragment " + partCode + ":", p.leaf || "");
     if (next === null) return;
     try {
@@ -697,6 +977,72 @@
       state.doc = data.doc;
       render();
       setStatus("Edited " + partCode);
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  function openTableEdit(partCode) {
+    const p = (state.doc.parts || {})[partCode];
+    if (!p) return;
+    state.tableEdit = {
+      open: true,
+      partCode: partCode,
+      table: cloneTable(p.table),
+      note: p.leaf || "",
+    };
+    const bd = $("table-edit-backdrop");
+    if (bd) bd.hidden = false;
+    if ($("table-edit-title"))
+      $("table-edit-title").textContent = "Edit table · " + partCode;
+    if ($("table-edit-note")) $("table-edit-note").value = state.tableEdit.note;
+    if ($("table-edit-header"))
+      $("table-edit-header").checked = state.tableEdit.table.header !== false;
+    syncTableEditGrid();
+  }
+
+  function closeTableEdit() {
+    state.tableEdit = { open: false, partCode: null, table: null, note: "" };
+    const bd = $("table-edit-backdrop");
+    if (bd) bd.hidden = true;
+  }
+
+  function syncTableEditGrid() {
+    const el = $("table-edit-grid");
+    if (!el || !state.tableEdit.table) return;
+    const hdr = $("table-edit-header");
+    if (hdr) state.tableEdit.table.header = !!hdr.checked;
+    state.tableEdit.table = renderGridInto(el, state.tableEdit.table, {
+      editable: true,
+      onChange: (t) => {
+        state.tableEdit.table = t;
+      },
+    });
+  }
+
+  async function saveTableEdit() {
+    if (!state.tableEdit.partCode || !state.slug) return;
+    const hdr = $("table-edit-header");
+    const grid = $("table-edit-grid");
+    const table = readGridFrom(grid, hdr && hdr.checked);
+    if (!tableHasContent(table)) {
+      alert("Table has no cell content.");
+      return;
+    }
+    const note = ($("table-edit-note") && $("table-edit-note").value) || "";
+    try {
+      const data = await api(
+        "PUT",
+        "/api/docs/" +
+          encodeURIComponent(state.slug) +
+          "/parts/" +
+          encodeURIComponent(state.tableEdit.partCode),
+        { table: table, leaf: note }
+      );
+      state.doc = data.doc;
+      closeTableEdit();
+      render();
+      setStatus("Saved table " + data.part.part_code);
     } catch (e) {
       alert(e.message);
     }
@@ -781,11 +1127,45 @@
   }
 
   function leafHtml(p) {
+    const block = partBlock(p);
+    if (block === "image") {
+      const id = p.image_id || "";
+      let html =
+        '<img class="part-image" src="' +
+        escapeHtml(imageUrl(id)) +
+        '" alt="' +
+        escapeHtml(p.image_name || p.leaf || id) +
+        '" />';
+      if (p.leaf) {
+        html +=
+          '<div class="part-caption">' + escapeHtml(p.leaf) + "</div>";
+      }
+      return html;
+    }
+    if (block === "table") {
+      return tableHtml(p.table, { note: p.leaf || "" });
+    }
     const text = escapeHtml(p.leaf || "");
     if (p.as_pre) {
       return '<pre class="part-leaf-pre">' + text + "</pre>";
     }
     return '<div class="part-leaf">' + text + "</div>";
+  }
+
+  function partPreviewText(p) {
+    const block = partBlock(p);
+    if (block === "image") {
+      return "🖼 " + (p.leaf || p.image_name || p.image_id || "image");
+    }
+    if (block === "table") {
+      const t = rectangularize(p.table);
+      const cells = t.rows
+        .slice(0, 2)
+        .map((r) => r.slice(0, 3).join(" · "))
+        .join(" / ");
+      return "▦ " + (p.leaf || cells || "table");
+    }
+    return (p.leaf || "").slice(0, 180);
   }
 
   function showView(name) {
@@ -1052,6 +1432,15 @@
       const row = document.createElement("div");
       row.className =
         "part-row" + (code === state.lastStored ? " newest" : "");
+      const block = partBlock(p);
+      const preBtn =
+        block === "text"
+          ? '<button type="button" class="part-act pre-toggle" data-act="pre" data-part="' +
+            escapeHtml(code) +
+            '">' +
+            (p.as_pre ? "as text" : "as pre") +
+            "</button>"
+          : "";
       row.innerHTML =
         '<span class="grip" title="Use Resort kanban to move">⋮⋮</span>' +
         '<div class="part-body">' +
@@ -1059,18 +1448,19 @@
         '<span class="part-code">' +
         escapeHtml(code) +
         "</span>" +
-        (p.as_pre ? '<span class="tag-pre">pre</span>' : "") +
+        (block !== "text"
+          ? '<span class="tag-block">' + escapeHtml(block) + "</span>"
+          : "") +
+        (p.as_pre && block === "text" ? '<span class="tag-pre">pre</span>' : "") +
         (code === state.lastStored
           ? '<span class="tag-new">↓ just dropped under composer</span>'
           : "") +
-        '<button type="button" class="part-act pre-toggle" data-act="pre" data-part="' +
-        escapeHtml(code) +
-        '">' +
-        (p.as_pre ? "as text" : "as pre") +
-        "</button>" +
+        preBtn +
         '<button type="button" class="part-act" data-act="edit" data-part="' +
         escapeHtml(code) +
-        '">Edit</button>' +
+        '">' +
+        (block === "table" ? "Edit table" : "Edit") +
+        "</button>" +
         '<button type="button" class="part-act part-del" data-act="del" data-part="' +
         escapeHtml(code) +
         '">Delete</button>' +
@@ -1152,14 +1542,48 @@
         card.className = "kanban-card";
         card.draggable = true;
         card.dataset.partCode = code;
+        const block = partBlock(p);
+        let body = "";
+        if (block === "table") {
+          const t = rectangularize(p.table);
+          const slice = t.rows.slice(0, 3).map((r) => r.slice(0, 4));
+          body =
+            '<table class="mini-table">' +
+            slice
+              .map((r, ri) => {
+                const tag = t.header && ri === 0 ? "th" : "td";
+                return (
+                  "<tr>" +
+                  r
+                    .map(
+                      (c) =>
+                        "<" + tag + ">" + escapeHtml(String(c).slice(0, 24)) + "</" + tag + ">"
+                    )
+                    .join("") +
+                  "</tr>"
+                );
+              })
+              .join("") +
+            "</table>";
+        } else if (block === "image") {
+          body =
+            '<div class="part-leaf">' +
+            escapeHtml(partPreviewText(p).slice(0, 120)) +
+            "</div>";
+        } else {
+          const prev = partPreviewText(p);
+          body =
+            '<div class="part-leaf">' +
+            escapeHtml(prev) +
+            (prev.length >= 180 ? "…" : "") +
+            "</div>";
+        }
         card.innerHTML =
           '<span class="part-code">' +
           escapeHtml(code) +
+          (block !== "text" ? " · " + block : "") +
           "</span>" +
-          '<div class="part-leaf">' +
-          escapeHtml((p.leaf || "").slice(0, 180)) +
-          (p.leaf && p.leaf.length > 180 ? "…" : "") +
-          "</div>";
+          body;
         card.addEventListener("dragstart", (e) => {
           card.classList.add("dragging");
           e.dataTransfer.setData("text/plain", code);
@@ -1273,8 +1697,32 @@
           const p = parts[code];
           if (!p) continue;
           const frag = document.createElement("div");
-          frag.className = "print-frag" + (p.as_pre ? " as-pre" : "");
-          if (p.as_pre) {
+          const btype = partBlock(p);
+          frag.className =
+            "print-frag" +
+            (p.as_pre && btype === "text" ? " as-pre" : "") +
+            (btype !== "text" ? " block-" + btype : "");
+          if (btype === "image") {
+            frag.innerHTML =
+              '<span class="frag-code">' +
+              escapeHtml(code) +
+              " · image</span>" +
+              '<img class="part-image" src="' +
+              escapeHtml(imageUrl(p.image_id)) +
+              '" alt="" />' +
+              (p.leaf
+                ? '<div class="part-caption">' + escapeHtml(p.leaf) + "</div>"
+                : "");
+          } else if (btype === "table") {
+            frag.innerHTML =
+              '<span class="frag-code">' +
+              escapeHtml(code) +
+              " · table</span>" +
+              tableHtml(p.table, { print: true }) +
+              (p.leaf
+                ? '<div class="part-caption">' + escapeHtml(p.leaf) + "</div>"
+                : "");
+          } else if (p.as_pre) {
             frag.innerHTML =
               '<span class="frag-code">' +
               escapeHtml(code) +
@@ -1463,6 +1911,137 @@
     }
   });
 
+  // fragment type chips
+  document.querySelectorAll("#composer-block-chips .block-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setComposerBlock(btn.getAttribute("data-block"));
+    });
+  });
+  setComposerBlock("text");
+
+  // image file pick → upload
+  $("composer-image-file") &&
+    $("composer-image-file").addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      try {
+        setStatus("Uploading image…");
+        const up = await uploadImageFile(file);
+        state.composerImage = up;
+        if ($("composer-image-status"))
+          $("composer-image-status").textContent = up.image_name || up.image_id;
+        const prev = $("composer-image-preview");
+        if (prev) {
+          prev.hidden = false;
+          prev.innerHTML =
+            '<img src="' + escapeHtml(up.url) + '" alt="" />';
+        }
+        setStatus("Image ready · " + (up.image_name || up.image_id));
+      } catch (err) {
+        alert(err.message);
+        setStatus("Image upload failed");
+      }
+    });
+
+  function mutateComposerTable(fn) {
+    const hdr = $("composer-table-header");
+    let t = readGridFrom($("composer-table"), hdr && hdr.checked);
+    t = rectangularize(fn(t) || t);
+    state.composerTable = t;
+    if (hdr) hdr.checked = t.header;
+    syncComposerTable();
+  }
+
+  $("composer-table-toolbar") &&
+    $("composer-table-toolbar").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-tbl]");
+      if (!btn) return;
+      const act = btn.getAttribute("data-tbl");
+      if (act === "add-row") {
+        mutateComposerTable((t) => {
+          const w = t.rows[0] ? t.rows[0].length : 2;
+          t.rows.push(Array(w).fill(""));
+          return t;
+        });
+      } else if (act === "add-col") {
+        mutateComposerTable((t) => {
+          t.rows.forEach((r) => r.push(""));
+          return t;
+        });
+      } else if (act === "del-row") {
+        mutateComposerTable((t) => {
+          if (t.rows.length > 1) t.rows.pop();
+          return t;
+        });
+      } else if (act === "del-col") {
+        mutateComposerTable((t) => {
+          if (t.rows[0] && t.rows[0].length > 1) {
+            t.rows.forEach((r) => r.pop());
+          }
+          return t;
+        });
+      } else if (act === "paste") {
+        const text = window.prompt("Paste table from Excel / Sheets (TSV or CSV):", "");
+        if (text == null) return;
+        const parsed = parseGridPaste(text);
+        if (!parsed) {
+          setStatus("Paste was empty");
+          return;
+        }
+        state.composerTable = parsed;
+        if ($("composer-table-header"))
+          $("composer-table-header").checked = parsed.header;
+        syncComposerTable();
+        setStatus("Pasted " + parsed.rows.length + " × " + parsed.rows[0].length);
+      }
+    });
+
+  $("composer-table-header") &&
+    $("composer-table-header").addEventListener("change", () => {
+      state.composerTable.header = !!$("composer-table-header").checked;
+      syncComposerTable();
+    });
+
+  // table edit modal
+  $("table-edit-close") &&
+    $("table-edit-close").addEventListener("click", closeTableEdit);
+  $("table-edit-save") &&
+    $("table-edit-save").addEventListener("click", () =>
+      saveTableEdit().catch((err) => alert(err.message))
+    );
+  $("table-edit-backdrop") &&
+    $("table-edit-backdrop").addEventListener("click", (e) => {
+      if (e.target === $("table-edit-backdrop")) closeTableEdit();
+    });
+  $("table-edit-header") &&
+    $("table-edit-header").addEventListener("change", syncTableEditGrid);
+  $("table-edit-toolbar") &&
+    $("table-edit-toolbar").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-ted]");
+      if (!btn || !state.tableEdit.table) return;
+      const act = btn.getAttribute("data-ted");
+      const hdr = $("table-edit-header");
+      let t = readGridFrom($("table-edit-grid"), hdr && hdr.checked);
+      if (act === "add-row") {
+        const w = t.rows[0] ? t.rows[0].length : 2;
+        t.rows.push(Array(w).fill(""));
+      } else if (act === "add-col") {
+        t.rows.forEach((r) => r.push(""));
+      } else if (act === "del-row") {
+        if (t.rows.length > 1) t.rows.pop();
+      } else if (act === "del-col") {
+        if (t.rows[0] && t.rows[0].length > 1) t.rows.forEach((r) => r.pop());
+      } else if (act === "paste") {
+        const text = window.prompt("Paste table (TSV/CSV):", "");
+        if (text == null) return;
+        const parsed = parseGridPaste(text);
+        if (parsed) t = parsed;
+      }
+      state.tableEdit.table = rectangularize(t);
+      if (hdr) hdr.checked = state.tableEdit.table.header;
+      syncTableEditGrid();
+    });
+
   // keyboard shortcuts
   document.addEventListener("keydown", (e) => {
     const mod = e.ctrlKey || e.metaKey;
@@ -1472,6 +2051,10 @@
 
     if (e.key === "Escape") {
       closeMenus();
+      if ($("table-edit-backdrop") && !$("table-edit-backdrop").hidden) {
+        closeTableEdit();
+        return;
+      }
       if (!$("about-backdrop").hidden) closeAboutDoc();
       return;
     }

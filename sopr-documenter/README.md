@@ -189,8 +189,12 @@ sopr-documenter/
 Boring specialized file (not DATBOX cosplay):
 
 - `house: BIGBOX` · `product: sopr-documenter`
-- **`parts`**: map of **stable** `SPR-####` → `{ leaf, section_id, created_at, as_pre? }` — **no chip on the part**  
-  - `as_pre: true` → compose + print as monospace `<pre>` (ASCII diagrams / layouts / code). Tick on composer; toggle later with “as pre / as text”.
+- **`parts`**: map of **stable** `SPR-####` → part object — **no chip on the part**  
+  - **`block`**: `text` (default) · `image` · `table`  
+  - **text:** `leaf`, optional `as_pre` (monospace `<pre>` for ASCII / code)  
+  - **image:** `image_id` (vault `safe_box/_media/`), `leaf` = caption; upload via composer  
+  - **table:** `table: { header, rows[][] }` text-only grid (Obsidian-style scan); optional `leaf` note; full grid editor on Edit  
+  - Images **in cells** not in this slice — use a separate image frag
 - **`sections`**: map of `sec-####` → `{ label, part_ids: [] }` (order in bucket)
 - **`section_order`**: outline order of sections (intake ≠ outline)
 - **`tps_chips`**: **document-level** list of chip_ids used in production (deduped) — **v0.1**
