@@ -13,7 +13,9 @@ Thumbs.db
 .venv/
 venv/
 
-# Operator mats / papers — local only for now (un-ignore later when Hands wants them on the boat)
-**/safe_box/**
-!**/safe_box/.gitkeep
+# Operator mats / papers — local only for now (Hands will un-ignore later)
+safe_box/
+**/safe_box/
+paper/
 **/paper/
+
