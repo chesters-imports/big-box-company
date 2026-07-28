@@ -1,4 +1,4 @@
-# Runtime / agent noise
+﻿# Runtime / agent noise
 **/__pycache__/
 *.py[cod]
 *.log
@@ -12,3 +12,8 @@ Thumbs.db
 # Local env
 .venv/
 venv/
+
+# Operator mats / papers — local only for now (un-ignore later when Hands wants them on the boat)
+**/safe_box/**
+!**/safe_box/.gitkeep
+**/paper/
