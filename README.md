@@ -27,6 +27,7 @@ Same physics as always: **every product comes from a maker**. Sometimes a studio
 | Bay | SKU | Status |
 |-----|-----|--------|
 | [`sopr-documenter/`](./sopr-documenter/) | **sopr Documenter** | **v0 shipped** · port 42950 · `prod/run-sopr.bat` |
+| [`great-road-mapper/`](./great-road-mapper/) | **Great Road Mapper** | **personal v0** · port 42960 · `prod/run-grm.bat` |
 
 More SKUs if the board approves (they will not approve fun).
 

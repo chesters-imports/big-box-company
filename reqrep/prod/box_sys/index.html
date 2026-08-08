@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ReqRep · CO.BBC-002-RR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/app.css" />
+</head>
+<body class="rr">
+  <header class="rr-chrome" data-deck-chrome>
+    <span class="rr-chip" data-deck-menu>BIG<strong>BOX</strong></span>
+    <span class="rr-drag" data-deck-drag title="ReqRep">REQREP</span>
+    <div class="rr-win" data-deck-window-controls></div>
+  </header>
+
+  <div class="rr-bar">
+    <div class="rr-bar-left">
+      <button type="button" class="rr-btn rr-btn-ghost" id="btnBack" hidden>← Requests</button>
+      <h1 class="rr-title" id="pageTitle">Request bay</h1>
+      <span class="rr-muted" id="metaCount">—</span>
+    </div>
+    <div class="rr-bar-actions">
+      <label class="rr-role" title="Who posts the next comment">
+        as
+        <select id="roleSelect" class="rr-select">
+          <option value="hands">Hands</option>
+          <option value="agent">Agent</option>
+        </select>
+      </label>
+      <button type="button" class="rr-btn" id="btnTheme" title="Toggle light / dark">Light</button>
+      <button type="button" class="rr-btn rr-btn-primary" id="btnNew">+ REQ</button>
+    </div>
+  </div>
+
+  <main class="rr-main" id="main">
+    <section class="rr-view is-on" id="viewList" aria-label="Request list"></section>
+    <section class="rr-view" id="viewCase" aria-label="Request case"></section>
+  </main>
+
+  <div class="rr-modal" id="modalNew" hidden>
+    <form class="rr-modal-card" id="formNew">
+      <h2>New request</h2>
+      <p class="rr-hint">Blank-line breaks → B01, B02… Open from Deck Host launcher (not Chrome).</p>
+      <label>Type
+        <select name="req_type">
+          <option value="REQ">REQ — new product / SKU</option>
+          <option value="MOD">MOD — change existing SKU</option>
+          <option value="ADDENDUM">ADDENDUM</option>
+          <option value="BUG">BUG — report / tax for the Frog King</option>
+        </select>
+      </label>
+      <label>SKU <input name="sku" required placeholder="e.g. CO.BBC-002-RR" autocomplete="off" /></label>
+      <label>Product <input name="product_name" required placeholder="e.g. ReqRep" autocomplete="off" /></label>
+      <p class="rr-hint rr-line-live" id="newTitlePreview">REQ</p>
+      <label>Producer <input name="producer" placeholder="ROM house — e.g. Big Box Company" autocomplete="off" /></label>
+      <label>Hands <input name="hands" placeholder="Face filing — e.g. Daniel Wake" autocomplete="off" /></label>
+      <label>Priority
+        <select name="priority">
+          <option>Normal</option>
+          <option>High</option>
+          <option>Low</option>
+          <option>Urgent</option>
+        </select>
+      </label>
+      <label>Seed discussion (optional)
+        <textarea name="seed" rows="6" placeholder="Paragraph one…&#10;&#10;Paragraph two (new block)…"></textarea>
+      </label>
+      <div class="rr-modal-actions">
+        <button type="button" class="rr-btn" id="btnCancelNew">Cancel</button>
+        <button type="submit" class="rr-btn rr-btn-primary">Open bay</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- In-ROM dialogs only — no window.prompt / confirm (B08) -->
+  <div class="rr-dialog" id="romDialog" hidden>
+    <div class="rr-dialog-card" role="dialog" aria-modal="true" aria-labelledby="romDialogTitle">
+      <h2 id="romDialogTitle" class="rr-dialog-title"></h2>
+      <div class="rr-dialog-body" id="romDialogBody"></div>
+      <div class="rr-dialog-actions">
+        <button type="button" class="rr-btn" id="romDialogCancel">Cancel</button>
+        <button type="button" class="rr-btn" id="romDialogAlt" hidden>Alt</button>
+        <button type="button" class="rr-btn rr-btn-primary" id="romDialogOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="rr-toast" id="toast" hidden></div>
+  <script src="/app.js"></script>
+</body>
+</html>

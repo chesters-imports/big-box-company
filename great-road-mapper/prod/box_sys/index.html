@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Great Road Mapper · CO.BBC-001-GRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/app.css" />
+</head>
+<body class="grm">
+  <header class="grm-chrome" data-deck-chrome>
+    <span class="grm-chip" data-deck-menu>BIG<strong>BOX</strong></span>
+    <span class="grm-drag" data-deck-drag title="Great Road Mapper">ROAD MAPPER</span>
+    <div class="grm-win" data-deck-window-controls></div>
+  </header>
+
+  <div class="grm-bar">
+    <div class="grm-bar-left">
+      <h1 class="grm-title">Production board</h1>
+      <span class="grm-muted" id="metaCount">—</span>
+    </div>
+    <div class="grm-bar-actions">
+      <button type="button" class="grm-btn" id="btnTheme" title="Toggle light / dark">Light</button>
+      <select id="filterLine" class="grm-select" title="Product line">
+        <option value="">All lines</option>
+      </select>
+      <select id="filterBucket" class="grm-select" title="Schedule lane (filled from live titles)">
+        <option value="">All lanes</option>
+      </select>
+      <select id="filterLifecycle" title="Lifecycle status">
+        <option value="">All lifecycles</option>
+        <option value="planning">Planning</option>
+        <option value="active">Active</option>
+        <option value="scope_change">Scope change</option>
+        <option value="shelved">Shelved</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+      <button type="button" class="grm-btn grm-btn-primary" id="btnNew" title="New game with empty DOS spine">+ Title</button>
+    </div>
+  </div>
+
+  <div class="grm-quarters" id="quarterChips" aria-label="Quarter filter — multi-select">
+    <button type="button" class="grm-qchip is-on" data-q="">All quarters</button>
+  </div>
+
+  <nav class="grm-tabs" role="tablist">
+    <button type="button" class="grm-tab" data-view="board" id="tabBoard">Board</button>
+    <button type="button" class="grm-tab is-on" data-view="list" id="tabList">List</button>
+    <button type="button" class="grm-tab" data-view="gantt" id="tabGantt">Gantt</button>
+    <button type="button" class="grm-tab" data-view="quarters" id="tabQuarters">By quarter</button>
+    <button type="button" class="grm-tab" data-view="vocab" id="tabVocab">Phases & gates</button>
+    <button type="button" class="grm-tab" data-view="config" id="tabConfig">Configurations</button>
+  </nav>
+
+  <main class="grm-main">
+    <section class="grm-view" id="viewBoard" aria-label="Pipeline board"></section>
+    <section class="grm-view is-on" id="viewList" aria-label="Title list"></section>
+    <section class="grm-view" id="viewGantt" aria-label="Production Gantt (read-only)"></section>
+    <section class="grm-view" id="viewQuarters" aria-label="Quarter strips"></section>
+    <section class="grm-view" id="viewVocab" aria-label="Shared phase and gate labels"></section>
+    <section class="grm-view" id="viewConfig" aria-label="Product type configurations"></section>
+  </main>
+
+  <aside class="grm-drawer" id="drawer" hidden>
+    <div class="grm-drawer-head">
+      <strong id="drawerTitle">Title</strong>
+      <button type="button" class="grm-icon" id="btnCloseDrawer" aria-label="Close">×</button>
+    </div>
+    <div class="grm-drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <div class="grm-modal" id="modalNew" hidden>
+    <form class="grm-modal-card" id="formNew">
+      <h2>New title</h2>
+      <p class="grm-hint">Schedule first. Theme, math model, assignments live on the ticket later — not required to open a board slot.</p>
+      <label>Code <input name="code" required placeholder="e.g. BSG-Q2G1-2027" autocomplete="off" /></label>
+      <label>Name <input name="name" placeholder="optional · working title" autocomplete="off" /></label>
+      <label>Product model
+        <select name="product_type_id" id="newProductType"></select>
+      </label>
+      <label>Ship date
+        <input name="release_date" id="newShip" type="date" />
+      </label>
+      <p class="grm-muted mono" id="newQuarterHint">Quarter follows ship date (or unassigned if empty).</p>
+      <label class="grm-muted">Line
+        <select name="product_line_id" id="newLine"></select>
+      </label>
+      <p class="grm-hint">Ship date reverse-fills the model’s bins. Leave blank for an unscheduled corner slot (phases empty until you set ship).</p>
+      <div class="grm-modal-actions">
+        <button type="button" class="grm-btn" id="btnCancelNew">Cancel</button>
+        <button type="submit" class="grm-btn grm-btn-primary" id="btnCreateTitle">Create</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- In-app phase / gate edit · no browser prompt -->
+  <div class="grm-modal" id="modalEvent" hidden>
+    <form class="grm-modal-card grm-modal-event" id="formEvent">
+      <h2 id="modalEventTitle">Edit phase</h2>
+      <p class="grm-hint" id="modalEventHint"></p>
+      <input type="hidden" name="mode" id="ev_mode" value="edit" />
+      <input type="hidden" name="title_id" id="ev_title_id" />
+      <input type="hidden" name="event_id" id="ev_event_id" />
+      <input type="hidden" name="workstream_id" id="ev_workstream_id" value="" />
+      <input type="hidden" name="role" id="ev_role" value="phase" />
+      <label id="ev_name_wrap">Label
+        <input name="name" id="ev_name" placeholder="Phase or gate name" autocomplete="off" />
+      </label>
+      <div class="grm-modal-date-row" id="ev_dates_wrap">
+        <label id="ev_start_wrap">Start
+          <input name="start" id="ev_start" type="date" />
+        </label>
+        <label id="ev_end_wrap">End
+          <input name="end" id="ev_end" type="date" />
+        </label>
+      </div>
+      <label class="grm-check" id="ev_cascade_wrap" title="Ship date stays put. Extra time only pulls earlier phases backward.">
+        <input type="checkbox" id="ev_cascade_earlier" checked />
+        Shift earlier phases back (ship immovable)
+      </label>
+      <label id="ev_note_wrap">Note <span class="grm-muted">(required — shows tiny next to the label)</span>
+        <input name="reason" id="ev_reason" required placeholder="e.g. holiday slip +1w · exclusivity cut" autocomplete="off" />
+      </label>
+      <div class="grm-modal-actions">
+        <button type="button" class="grm-btn" id="btnCancelEvent">Cancel</button>
+        <button type="submit" class="grm-btn grm-btn-primary" id="btnSaveEvent">Save</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="grm-toast" id="toast" hidden></div>
+  <script src="/app.js"></script>
+</body>
+</html>
