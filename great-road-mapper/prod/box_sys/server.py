@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import secrets
 import time
+from datetime import date
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -143,6 +144,228 @@ def new_id(prefix: str) -> str:
     return f"{prefix}-{secrets.token_hex(4)}"
 
 
+def find_person(people: list[dict[str, Any]], pid: str) -> dict[str, Any] | None:
+    pid = (pid or "").strip()
+    if not pid:
+        return None
+    return next((p for p in people or [] if (p.get("id") or "") == pid), None)
+
+
+def find_phase(title: dict[str, Any], phase_id: str) -> dict[str, Any] | None:
+    pid = (phase_id or "").strip()
+    if not pid:
+        return None
+    return next((p for p in (title.get("phases") or []) if (p.get("id") or "") == pid), None)
+
+
+def find_workstream(phase: dict[str, Any] | None, ws_id: str) -> dict[str, Any] | None:
+    wid = (ws_id or "").strip()
+    if not phase or not wid:
+        return None
+    return next(
+        (w for w in (phase.get("workstreams") or []) if isinstance(w, dict) and (w.get("id") or "") == wid),
+        None,
+    )
+
+
+def clean_assignment(
+    raw: dict[str, Any],
+    people: list[dict[str, Any]],
+    title: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Normalize one title assignment. Drop rows with no person or no phase."""
+    if not isinstance(raw, dict):
+        return None
+    person = find_person(people, raw.get("person_id") or "")
+    person_id = (raw.get("person_id") or "").strip()
+    if not person_id:
+        return None
+    phase = find_phase(title, raw.get("phase_id") or "")
+    phase_id = (raw.get("phase_id") or "").strip()
+    if not phase_id:
+        return None
+    ws_id = (raw.get("workstream_id") or "").strip()
+    ws = find_workstream(phase, ws_id) if phase else None
+    role = (raw.get("role") or "").strip()
+    if not role and person:
+        role = (person.get("role") or "").strip()
+    name = ""
+    if person:
+        name = (person.get("name") or "").strip()
+    if not name:
+        name = (raw.get("person_name") or "").strip() or "Unknown"
+    return {
+        "id": (raw.get("id") or "").strip() or new_id("asg"),
+        "person_id": person_id,
+        "person_name": name,
+        "role": role,
+        "phase_id": phase_id,
+        "phase_name": (phase.get("name") or "") if phase else (raw.get("phase_name") or ""),
+        "workstream_id": (ws.get("id") or "") if ws else "",
+        "workstream_name": (ws.get("name") or "") if ws else "",
+        "person_missing": person is None,
+        "phase_missing": phase is None,
+    }
+
+
+def _iso(d: Any) -> str | None:
+    if d is None:
+        return None
+    return str(d)[:10]
+
+
+def assignment_work_status(start, end, today=None) -> str:
+    """Calendar status of a phase/stream window. Not operator lifecycle."""
+    today = today or date.today()
+    if not start and not end:
+        return "unscheduled"
+    s = start or end
+    e = end or start
+    if e and e < today:
+        return "done"
+    if s and e and s <= today <= e:
+        return "current"
+    if s and s > today:
+        return "upcoming"
+    return "unscheduled"
+
+
+def related_gates(
+    title: dict[str, Any],
+    phase: dict[str, Any] | None,
+    ws: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    """Gates pinned to this phase (or this workstream)."""
+    if not phase:
+        return []
+    pname = (phase.get("name") or "").strip()
+    wname = ((ws or {}).get("name") or "").strip()
+    out: list[dict[str, Any]] = []
+    for g in title.get("phases") or []:
+        if not isinstance(g, dict):
+            continue
+        role = g.get("role") or event_role(g.get("name"), g.get("kind"))
+        if role != "gate":
+            continue
+        gphase = (g.get("gate_phase_name") or "").strip()
+        gws = (g.get("gate_workstream_name") or "").strip()
+        hit = False
+        if gws and wname:
+            hit = gws == wname and (not gphase or gphase == pname)
+        elif gphase:
+            hit = gphase == pname
+        if not hit:
+            continue
+        day = parse_date(g.get("start") or g.get("end"))
+        out.append(
+            {
+                "id": g.get("id") or "",
+                "name": g.get("name") or "Gate",
+                "date": _iso(day),
+                "relation": (g.get("gate_relation") or "").strip(),
+                "done": bool(day and day < date.today()),
+            }
+        )
+    # imported titles often lack gate_phase_name — treat a gate on the phase end day as the pin
+    if not out:
+        pend = parse_date(phase.get("end") or phase.get("start"))
+        if pend:
+            for g in title.get("phases") or []:
+                if not isinstance(g, dict):
+                    continue
+                role = g.get("role") or event_role(g.get("name"), g.get("kind"))
+                if role != "gate":
+                    continue
+                day = parse_date(g.get("start") or g.get("end"))
+                if day != pend:
+                    continue
+                out.append(
+                    {
+                        "id": g.get("id") or "",
+                        "name": g.get("name") or "Gate",
+                        "date": _iso(day),
+                        "relation": "at_end",
+                        "done": bool(day and day < date.today()),
+                    }
+                )
+    # prefer at_end / after_end first — that's the "is this phase finished" pin
+    rank = {
+        "at_end": 0,
+        "after_end": 1,
+        "offset_from_end": 2,
+        "at_start": 5,
+        "before_start": 6,
+    }
+    out.sort(key=lambda r: (rank.get(r.get("relation") or "", 3), r.get("date") or ""))
+    return out
+
+
+def decorate_assignment(row: dict[str, Any], title: dict[str, Any]) -> dict[str, Any]:
+    """Add calendar window + related-gate done flags for the People board."""
+    phase = find_phase(title, row.get("phase_id") or "")
+    ws = find_workstream(phase, row.get("workstream_id") or "")
+    src = ws if ws and (ws.get("start") or ws.get("end")) else phase
+    start = parse_date((src or {}).get("start")) if src else None
+    end = parse_date((src or {}).get("end") or (src or {}).get("start")) if src else None
+    gates = related_gates(title, phase, ws)
+    pin = gates[0] if gates else None
+    status = assignment_work_status(start, end)
+    # if the end-of-phase gate has passed, the slot is done even if dates are fuzzy
+    if status != "done" and pin and pin.get("done") and (pin.get("relation") or "") in (
+        "at_end",
+        "after_end",
+        "offset_from_end",
+        "",
+    ):
+        status = "done"
+    row["start"] = _iso(start)
+    row["end"] = _iso(end)
+    row["work_status"] = status
+    row["gates"] = gates
+    row["gate"] = pin
+    row["gate_done"] = bool(pin and pin.get("done"))
+    return row
+
+
+def resolve_assignments(
+    title: dict[str, Any], people: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for raw in title.get("assignments") or []:
+        row = clean_assignment(raw, people, title)
+        if row:
+            out.append(decorate_assignment(row, title))
+    return out
+
+
+def assignment_key(row: dict[str, Any]) -> tuple[str, str, str]:
+    return (
+        (row.get("person_id") or "").strip(),
+        (row.get("phase_id") or "").strip(),
+        (row.get("workstream_id") or "").strip(),
+    )
+
+
+def strip_person_assignments(titles: list[dict[str, Any]], person_id: str) -> int:
+    n = 0
+    pid = (person_id or "").strip()
+    for t in titles or []:
+        before = list(t.get("assignments") or [])
+        after = [a for a in before if (a.get("person_id") or "") != pid]
+        if len(after) != len(before):
+            t["assignments"] = after
+            n += len(before) - len(after)
+    return n
+
+
+def strip_phase_assignments(title: dict[str, Any], phase_id: str) -> int:
+    pid = (phase_id or "").strip()
+    before = list(title.get("assignments") or [])
+    after = [a for a in before if (a.get("phase_id") or "") != pid]
+    title["assignments"] = after
+    return len(before) - len(after)
+
+
 def vocab_from_titles(titles: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Shared phase/gate labels with usage counts."""
     bag: dict[str, dict[str, Any]] = {}
@@ -161,7 +384,9 @@ def vocab_from_titles(titles: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return rows
 
 
-def enrich_title(t: dict[str, Any]) -> dict[str, Any]:
+def enrich_title(
+    t: dict[str, Any], people: list[dict[str, Any]] | None = None
+) -> dict[str, Any]:
     import secrets as _secrets
 
     phases = t.get("phases") or []
@@ -171,6 +396,15 @@ def enrich_title(t: dict[str, Any]) -> dict[str, Any]:
             if isinstance(ws, dict) and not ws.get("id"):
                 ws["id"] = f"ws-{_secrets.token_hex(4)}"
     out = dict(t)
+    crew = resolve_assignments(t, people or [])
+    out["assignments"] = crew
+    seen: list[str] = []
+    for a in crew:
+        nm = (a.get("person_name") or "").strip()
+        if nm and nm not in seen:
+            seen.append(nm)
+    out["crew"] = seen
+    out["crew_count"] = len(seen)
     # split for UI
     out["phase_events"] = [
         p
@@ -399,7 +633,8 @@ class Handler(SimpleHTTPRequestHandler):
             )
         if path == "/api/state":
             data = load_store()
-            titles = [enrich_title(t) for t in data.get("titles") or []]
+            people = data.get("people") or []
+            titles = [enrich_title(t, people) for t in data.get("titles") or []]
             qset = sorted(
                 {t.get("quarter_key") or "unassigned" for t in titles},
                 reverse=True,
@@ -778,7 +1013,7 @@ class Handler(SimpleHTTPRequestHandler):
             t = mint_title(body, templates, product_types)
             data.setdefault("titles", []).append(t)
             save_store(data)
-            return self._json(200, {"ok": True, "title": enrich_title(t)})
+            return self._json(200, {"ok": True, "title": enrich_title(t, data.get("people") or [])})
 
         if path == "/api/titles/rebrand":
             # body: { from_id or from_code, code?, name?, release_date? }
@@ -814,8 +1049,8 @@ class Handler(SimpleHTTPRequestHandler):
                 200,
                 {
                     "ok": True,
-                    "title": enrich_title(t),
-                    "nucleus": enrich_title(nucleus),
+                    "title": enrich_title(t, data.get("people") or []),
+                    "nucleus": enrich_title(nucleus, data.get("people") or []),
                     "message": f"rebrand {t.get('code')} linked to {nucleus.get('code')}",
                 },
             )
@@ -841,6 +1076,7 @@ class Handler(SimpleHTTPRequestHandler):
                     )
                 before = dict(target)
                 t["phases"] = [p for p in phases if p.get("id") != eid]
+                strip_phase_assignments(t, eid)
                 # keep a ghost log on title notes trail
                 t.setdefault("event_log", []).append(
                     {
@@ -853,7 +1089,7 @@ class Handler(SimpleHTTPRequestHandler):
                 )
                 t["updated"] = int(time.time())
                 save_store(data)
-                return self._json(200, {"ok": True, "title": enrich_title(t)})
+                return self._json(200, {"ok": True, "title": enrich_title(t, data.get("people") or [])})
 
             name = (body.get("name") or (target or {}).get("name") or "Event").strip()
             role = (body.get("role") or (target or {}).get("role") or "gate").strip()
@@ -898,7 +1134,7 @@ class Handler(SimpleHTTPRequestHandler):
                 ws["notes"] = reason
                 t["updated"] = int(time.time())
                 save_store(data)
-                return self._json(200, {"ok": True, "title": enrich_title(t)})
+                return self._json(200, {"ok": True, "title": enrich_title(t, data.get("people") or [])})
 
             if target:
                 before = {
@@ -979,7 +1215,7 @@ class Handler(SimpleHTTPRequestHandler):
                     200,
                     {
                         "ok": True,
-                        "title": enrich_title(t),
+                        "title": enrich_title(t, data.get("people") or []),
                         "message": msg,
                         "cascade_days": int(plan.get("cascade_days") or 0),
                         "cascade_shifted": shifted,
@@ -1004,7 +1240,7 @@ class Handler(SimpleHTTPRequestHandler):
                 t["phases"] = phases
             t["updated"] = int(time.time())
             save_store(data)
-            return self._json(200, {"ok": True, "title": enrich_title(t)})
+            return self._json(200, {"ok": True, "title": enrich_title(t, data.get("people") or [])})
 
         if path == "/api/seed-q1-2027":
             existing_codes = {
@@ -1051,7 +1287,7 @@ class Handler(SimpleHTTPRequestHandler):
                 200,
                 {
                     "ok": True,
-                    "title": enrich_title(t),
+                    "title": enrich_title(t, data.get("people") or []),
                     "message": "dates reverse-filled from ship date",
                 },
             )
@@ -1094,7 +1330,28 @@ class Handler(SimpleHTTPRequestHandler):
                     else:
                         t[key] = val if not isinstance(val, str) else val.strip()
             if "assignments" in body and isinstance(body["assignments"], list):
-                t["assignments"] = body["assignments"]
+                cleaned: list[dict[str, Any]] = []
+                seen_keys: set[tuple[str, str, str]] = set()
+                for raw in body["assignments"]:
+                    if not isinstance(raw, dict):
+                        continue
+                    row = clean_assignment(raw, data.get("people") or [], t)
+                    if not row:
+                        continue
+                    k = assignment_key(row)
+                    if k in seen_keys:
+                        continue
+                    seen_keys.add(k)
+                    cleaned.append(
+                        {
+                            "id": row["id"],
+                            "person_id": row["person_id"],
+                            "role": row["role"],
+                            "phase_id": row["phase_id"],
+                            "workstream_id": row["workstream_id"],
+                        }
+                    )
+                t["assignments"] = cleaned
             if "phases" in body and isinstance(body["phases"], list):
                 t["phases"] = body["phases"]
             if body.get("recompute"):
@@ -1126,18 +1383,190 @@ class Handler(SimpleHTTPRequestHandler):
                     other["updated"] = int(time.time())
             t["updated"] = int(time.time())
             save_store(data)
-            return self._json(200, {"ok": True, "title": enrich_title(t)})
+            return self._json(200, {"ok": True, "title": enrich_title(t, data.get("people") or [])})
 
         if path == "/api/people":
+            name = (body.get("name") or "").strip()
+            if not name:
+                return self._json(400, {"ok": False, "error": "name required"})
+            role = (body.get("role") or "").strip()
+            roles = list(data.get("roles") or [])
+            if role and role not in roles:
+                roles.append(role)
+                data["roles"] = roles
             person = {
                 "id": new_id("ppl"),
-                "name": (body.get("name") or "Unnamed").strip(),
-                "role": (body.get("role") or "").strip(),
+                "name": name,
+                "role": role,
                 "active": True,
             }
             data.setdefault("people", []).append(person)
             save_store(data)
-            return self._json(200, {"ok": True, "person": person})
+            return self._json(
+                200,
+                {
+                    "ok": True,
+                    "person": person,
+                    "people": data["people"],
+                    "roles": data.get("roles") or [],
+                    "message": f"added {name}",
+                },
+            )
+
+        if path == "/api/people/update":
+            pid = (body.get("id") or "").strip()
+            person = find_person(data.get("people") or [], pid)
+            if not person:
+                return self._json(404, {"ok": False, "error": "person not found"})
+            if "name" in body:
+                name = (body.get("name") or "").strip()
+                if not name:
+                    return self._json(400, {"ok": False, "error": "name required"})
+                person["name"] = name
+            if "role" in body:
+                role = (body.get("role") or "").strip()
+                person["role"] = role
+                roles = list(data.get("roles") or [])
+                if role and role not in roles:
+                    roles.append(role)
+                    data["roles"] = roles
+            if "active" in body:
+                person["active"] = bool(body.get("active"))
+            save_store(data)
+            return self._json(
+                200,
+                {
+                    "ok": True,
+                    "person": person,
+                    "people": data.get("people") or [],
+                    "roles": data.get("roles") or [],
+                    "message": "person saved",
+                },
+            )
+
+        if path == "/api/people/delete":
+            pid = (body.get("id") or "").strip()
+            people = list(data.get("people") or [])
+            person = find_person(people, pid)
+            if not person:
+                return self._json(404, {"ok": False, "error": "person not found"})
+            data["people"] = [p for p in people if (p.get("id") or "") != pid]
+            stripped = strip_person_assignments(data.get("titles") or [], pid)
+            save_store(data)
+            return self._json(
+                200,
+                {
+                    "ok": True,
+                    "people": data["people"],
+                    "message": f"removed {person.get('name') or pid}"
+                    + (f" · cleared {stripped} assignment(s)" if stripped else ""),
+                },
+            )
+
+        if path == "/api/roles":
+            name = (body.get("name") or body.get("role") or "").strip()
+            if not name:
+                return self._json(400, {"ok": False, "error": "name required"})
+            roles = list(data.get("roles") or [])
+            if name not in roles:
+                roles.append(name)
+                data["roles"] = roles
+                save_store(data)
+            return self._json(
+                200,
+                {"ok": True, "roles": data.get("roles") or [], "message": f"role “{name}”"},
+            )
+
+        if path == "/api/roles/delete":
+            name = (body.get("name") or body.get("role") or "").strip()
+            if not name:
+                return self._json(400, {"ok": False, "error": "name required"})
+            roles = [r for r in (data.get("roles") or []) if r != name]
+            data["roles"] = roles
+            save_store(data)
+            return self._json(
+                200,
+                {"ok": True, "roles": roles, "message": f"removed role “{name}”"},
+            )
+
+        if path.startswith("/api/titles/") and path.endswith("/assign"):
+            tid = path[len("/api/titles/") : -len("/assign")]
+            t = next((x for x in data.get("titles") or [] if x.get("id") == tid), None)
+            if not t:
+                return self._json(404, {"ok": False, "error": "title not found"})
+            person = find_person(data.get("people") or [], body.get("person_id") or "")
+            if not person:
+                return self._json(404, {"ok": False, "error": "person not found"})
+            phase = find_phase(t, body.get("phase_id") or "")
+            if not phase:
+                return self._json(404, {"ok": False, "error": "phase not found"})
+            if (phase.get("role") or "phase") == "gate":
+                return self._json(
+                    400, {"ok": False, "error": "assign people to phase work, not gates"}
+                )
+            ws_id = (body.get("workstream_id") or "").strip()
+            ws = find_workstream(phase, ws_id) if ws_id else None
+            if ws_id and not ws:
+                return self._json(404, {"ok": False, "error": "workstream not found"})
+            role = (body.get("role") or person.get("role") or "").strip()
+            row = {
+                "id": new_id("asg"),
+                "person_id": person["id"],
+                "role": role,
+                "phase_id": phase["id"],
+                "workstream_id": (ws.get("id") or "") if ws else "",
+            }
+            bag = list(t.get("assignments") or [])
+            keys = {assignment_key(a) for a in bag if isinstance(a, dict)}
+            if assignment_key(row) in keys:
+                return self._json(
+                    200,
+                    {
+                        "ok": True,
+                        "title": enrich_title(t, data.get("people") or []),
+                        "message": "already assigned",
+                    },
+                )
+            bag.append(row)
+            t["assignments"] = bag
+            t["updated"] = int(time.time())
+            save_store(data)
+            slot = phase.get("name") or "phase"
+            if ws:
+                slot = f"{slot} ↳ {ws.get('name')}"
+            return self._json(
+                200,
+                {
+                    "ok": True,
+                    "title": enrich_title(t, data.get("people") or []),
+                    "assignment": clean_assignment(row, data.get("people") or [], t),
+                    "message": f"{person.get('name')} → {slot}",
+                },
+            )
+
+        if path.startswith("/api/titles/") and path.endswith("/unassign"):
+            tid = path[len("/api/titles/") : -len("/unassign")]
+            t = next((x for x in data.get("titles") or [] if x.get("id") == tid), None)
+            if not t:
+                return self._json(404, {"ok": False, "error": "title not found"})
+            aid = (body.get("id") or body.get("assignment_id") or "").strip()
+            if not aid:
+                return self._json(400, {"ok": False, "error": "assignment id required"})
+            before = list(t.get("assignments") or [])
+            after = [a for a in before if (a.get("id") or "") != aid]
+            if len(after) == len(before):
+                return self._json(404, {"ok": False, "error": "assignment not found"})
+            t["assignments"] = after
+            t["updated"] = int(time.time())
+            save_store(data)
+            return self._json(
+                200,
+                {
+                    "ok": True,
+                    "title": enrich_title(t, data.get("people") or []),
+                    "message": "unassigned",
+                },
+            )
 
         return self._json(404, {"ok": False, "error": "not found"})
 

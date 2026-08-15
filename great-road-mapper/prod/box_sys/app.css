@@ -1027,7 +1027,7 @@ body.theme-light .grm-badge.life-scope_change { color: #6a5020; border-color: #a
   border-radius: 3px;
   overflow: hidden;
   background: var(--panel2);
-  --grm-ev-cols: 2.5rem minmax(0, 1fr) 12.25rem 4.2rem;
+  --grm-ev-cols: 2.5rem minmax(0, 1fr) 12.25rem 5.6rem;
 }
 .grm-ev-table-h,
 .grm-ev-row,
@@ -1163,8 +1163,9 @@ body.theme-light .grm-ev-dates-ws {
 }
 .grm-ev-acts {
   display: flex;
-  gap: 0.2rem;
+  flex-wrap: wrap;
   justify-content: flex-end;
+  gap: 0.2rem;
   flex-shrink: 0;
 }
 .grm-ev-acts .grm-btn-sm {
@@ -1608,4 +1609,123 @@ body.theme-light .grm-ws-name {
   text-align: center;
   color: var(--dim);
   font-size: 0.8rem;
+}
+
+/* Crew chips on phase / workstream rows */
+.grm-crew-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.18rem;
+  margin-top: 0.18rem;
+  flex-basis: 100%;
+}
+.grm-crew-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.03em;
+  padding: 0.06rem 0.18rem 0.06rem 0.32rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--dim);
+  max-width: 100%;
+}
+.grm-crew-chip.is-missing { border-style: dashed; opacity: 0.7; }
+.grm-crew-role {
+  color: var(--muted);
+}
+.grm-crew-x {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.7rem;
+  line-height: 1;
+  padding: 0 0.15rem 0 0;
+}
+.grm-crew-x:hover { color: var(--rose); }
+.grm-crew-cell {
+  font-size: 0.62rem;
+  color: var(--dim);
+  max-width: 10rem;
+}
+
+/* People roster / assignments */
+.grm-ppl-panes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0 0 0.75rem;
+}
+.grm-ppl-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.5rem 0 0.15rem;
+}
+.grm-ppl-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  margin: 0.45rem 0 0.25rem;
+}
+.grm-ppl-add input,
+.grm-ppl-add select {
+  min-width: 10rem;
+}
+.grm-ppl-table tr { cursor: default; }
+.grm-ppl-table tr.is-inactive td { opacity: 0.55; }
+.grm-asg-table td { vertical-align: top; }
+.grm-asg-table th { padding: 0; }
+.grm-th-sort {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  padding: 0.28rem 0.45rem;
+  cursor: pointer;
+}
+.grm-th-sort:hover { color: var(--ink); }
+.grm-th-sort.is-on { color: var(--accent); }
+.grm-asg-table tr.asg-done td { opacity: 0.62; }
+.grm-ppl-gate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.4rem;
+  font-size: 0.62rem;
+}
+.grm-ppl-gate-name {
+  color: var(--dim);
+  font-size: 0.6rem;
+}
+.grm-badge.asg-done,
+.grm-badge.life-done {
+  border-color: color-mix(in srgb, var(--ok) 55%, var(--line));
+  color: var(--ok);
+}
+.grm-badge.asg-current {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.grm-badge.asg-upcoming {
+  border-color: var(--line);
+  color: var(--dim);
+}
+.grm-badge.asg-unscheduled {
+  border-color: var(--line);
+  color: var(--muted);
+}
+.grm-badge.life-open {
+  border-color: var(--warn);
+  color: var(--warn);
 }

@@ -6,6 +6,13 @@
   /** @type {any} */
   let state = { titles: [], product_lines: [], quarters: [], pipeline_buckets: [] };
   let view = "list"; // default: list
+  /** @type {"assignments"|"roster"} */
+  let peoplePane = "assignments";
+  /** @type {"open"|"done"|"all"} */
+  let peopleAssignFilter = "open";
+  /** @type {"status"|"staff"|"title"|"code"|"work"|"role"|"window"|"gate"} */
+  let peopleAssignSort = "status";
+  let peopleAssignSortDir = 1;
   /** @type {Set<string>} empty = all */
   let quarterFilter = new Set();
   /** @type {string|null} */
@@ -242,6 +249,81 @@
     return "";
   }
 
+  function personById(id) {
+    return (state.people || []).find((p) => p.id === id) || null;
+  }
+
+  function titleAssignments(t) {
+    return (t && t.assignments) || [];
+  }
+
+  function assignmentsForSlot(t, phaseId, wsId) {
+    const wantWs = wsId || "";
+    return titleAssignments(t).filter((a) => {
+      if ((a.phase_id || "") !== phaseId) return false;
+      return (a.workstream_id || "") === wantWs;
+    });
+  }
+
+  function crewLabel(t) {
+    const names = t.crew && t.crew.length
+      ? t.crew
+      : [
+          ...new Set(
+            titleAssignments(t)
+              .map((a) => a.person_name)
+              .filter(Boolean)
+          ),
+        ];
+    if (!names.length) return "—";
+    if (names.length <= 2) return names.join(", ");
+    return `${names.slice(0, 2).join(", ")} +${names.length - 2}`;
+  }
+
+  function roleOptionsHtml(selected, extra) {
+    const roles = [...(state.roles || [])];
+    if (extra && !roles.includes(extra)) roles.unshift(extra);
+    return (
+      `<option value="">—</option>` +
+      roles
+        .map(
+          (r) =>
+            `<option value="${esc(r)}" ${r === selected ? "selected" : ""}>${esc(
+              r
+            )}</option>`
+        )
+        .join("")
+    );
+  }
+
+  function crewChipsHtml(t, phaseId, wsId) {
+    const rows = assignmentsForSlot(t, phaseId, wsId);
+    if (!rows.length) return "";
+    return (
+      `<span class="grm-crew-chips">` +
+      rows
+        .map((a) => {
+          const miss = a.person_missing ? " is-missing" : "";
+          const lab = a.role
+            ? `${a.person_name} · ${a.role}`
+            : a.person_name || "—";
+          return (
+            `<span class="grm-crew-chip${miss}" title="${esc(lab)}">` +
+            `<span>${esc(a.person_name || "—")}</span>` +
+            (a.role
+              ? `<span class="grm-crew-role">${esc(a.role)}</span>`
+              : "") +
+            `<button type="button" class="grm-crew-x ev-unassign" data-aid="${esc(
+              a.id
+            )}" aria-label="Unassign ${esc(a.person_name || "")}">×</button>` +
+            `</span>`
+          );
+        })
+        .join("") +
+      `</span>`
+    );
+  }
+
   function findByCode(code) {
     if (!code) return null;
     const c = String(code).toUpperCase();
@@ -270,6 +352,9 @@
       bucketBadge(t.bucket) +
       `<br/>${esc(lineName(t.product_line_id))} · rel ${esc(t.release_date || "—")}` +
       `<br/><span class="grm-phase-line">${esc(t.current_phase || "—")}</span>` +
+      (crewLabel(t) !== "—"
+        ? `<br/><span class="grm-dim">crew: ${esc(crewLabel(t))}</span>`
+        : "") +
       (twinLabel(t) ? `<br/>${twinLabel(t)}` : "") +
       (t.theme ? `<br/><span class="grm-dim">theme: ${esc(t.theme)}</span>` : "") +
       `</div></button>`
@@ -338,7 +423,7 @@
     }
     $("viewList").innerHTML =
       `<div class="grm-table-wrap"><table class="grm-table"><thead><tr>` +
-      `<th></th><th>Code</th><th>Name</th><th>Q</th><th>Line</th><th>Model</th><th>Life</th><th>Lane</th><th>Release</th><th>Phase</th><th>Twin</th>` +
+      `<th></th><th>Code</th><th>Name</th><th>Q</th><th>Line</th><th>Model</th><th>Life</th><th>Lane</th><th>Release</th><th>Phase</th><th>Crew</th><th>Twin</th>` +
       `</tr></thead><tbody>` +
       titles
         .map((t) => {
@@ -361,6 +446,7 @@
             `<td>${bucketBadge(t.bucket)}</td>` +
             `<td class="mono">${esc(t.release_date || "—")}</td>` +
             `<td>${esc(t.current_phase || "—")}</td>` +
+            `<td class="grm-crew-cell">${esc(crewLabel(t))}</td>` +
             `<td class="mono twin-cell">${esc(twin || "—")}</td>` +
             `</tr>`
           );
@@ -811,6 +897,7 @@
     else if (view === "gantt") renderGantt();
     else if (view === "quarters") renderQuarters();
     else if (view === "config") renderConfig();
+    else if (view === "people") renderPeople();
     else renderVocab();
   }
 
@@ -821,12 +908,14 @@
     if ($("tabGantt")) $("tabGantt").classList.toggle("is-on", name === "gantt");
     $("tabQuarters").classList.toggle("is-on", name === "quarters");
     $("tabVocab").classList.toggle("is-on", name === "vocab");
+    if ($("tabPeople")) $("tabPeople").classList.toggle("is-on", name === "people");
     if ($("tabConfig")) $("tabConfig").classList.toggle("is-on", name === "config");
     $("viewBoard").classList.toggle("is-on", name === "board");
     $("viewList").classList.toggle("is-on", name === "list");
     if ($("viewGantt")) $("viewGantt").classList.toggle("is-on", name === "gantt");
     $("viewQuarters").classList.toggle("is-on", name === "quarters");
     $("viewVocab").classList.toggle("is-on", name === "vocab");
+    if ($("viewPeople")) $("viewPeople").classList.toggle("is-on", name === "people");
     if ($("viewConfig")) $("viewConfig").classList.toggle("is-on", name === "config");
     render();
   }
@@ -2190,10 +2279,11 @@
     );
   }
 
-  function eventListHtml(events, role) {
+  function eventListHtml(t, events, role) {
     if (!events.length) {
       return `<p class="grm-muted">Empty spine slots — use Edit to set dates.</p>`;
     }
+    const canAssign = role === "phase";
     return (
       `<div class="grm-ev-table">` +
       `<div class="grm-ev-table-h">` +
@@ -2203,6 +2293,7 @@
         .map((p) => {
           const dated = p.start || p.end;
           const streams = (p.workstreams || []).filter((w) => w && w.name);
+          const phaseChips = canAssign ? crewChipsHtml(t, p.id, "") : "";
           const wsHtml =
             role === "phase" && streams.length
               ? streams
@@ -2231,6 +2322,7 @@
                       `<span class="grm-ws-meta" title="template window (not an edit reason)">${esc(
                         span
                       )}</span>` +
+                      crewChipsHtml(t, p.id, wid) +
                       `</span>` +
                       `<span class="grm-ev-dates grm-ev-dates-ws mono" title="${esc(
                         phaseDateTitle(wObj)
@@ -2239,6 +2331,9 @@
                       `<button type="button" class="grm-btn grm-btn-sm ev-edit-ws" data-eid="${esc(
                         p.id
                       )}" data-wsid="${esc(wid)}" title="Edit this line">Edit</button>` +
+                      `<button type="button" class="grm-btn grm-btn-sm ev-assign" data-eid="${esc(
+                        p.id
+                      )}" data-wsid="${esc(wid)}" title="Assign person to this work">+ Crew</button>` +
                       `</span>` +
                       `</div>`
                     );
@@ -2254,6 +2349,7 @@
             `<span class="grm-ev-label" title="${esc(p.name || "")}">` +
             `<span class="grm-ev-name">${esc(p.name)}</span>` +
             changePill(p) +
+            phaseChips +
             `</span>` +
             `<span class="grm-ev-dates grm-ev-dates-phase mono" title="${esc(
               phaseDateTitle(p)
@@ -2262,6 +2358,11 @@
             `<button type="button" class="grm-btn grm-btn-sm ev-edit" data-eid="${esc(
               p.id
             )}" title="Edit dates">Edit</button>` +
+            (canAssign
+              ? `<button type="button" class="grm-btn grm-btn-sm ev-assign" data-eid="${esc(
+                  p.id
+                )}" data-wsid="" title="Assign person to this phase">+ Crew</button>`
+              : "") +
             `<button type="button" class="grm-btn grm-btn-sm ev-del" data-eid="${esc(
               p.id
             )}" title="Remove">✕</button>` +
@@ -2601,6 +2702,7 @@
       rowKV("Kind", (t.kind || "title") === "rebrand" ? "Rebrand" : "Full title") +
       rowKV("Lifecycle", lifeLab) +
       rowKV("Schedule lane", lane) +
+      rowKV("Crew", crewLabel(t)) +
       `</div>` +
       `<div id="pcIdentityEdit" class="grm-pcard-edit" hidden>` +
       `<div class="grm-field"><label>CODE</label><input id="f_code" value="${esc(
@@ -2732,11 +2834,11 @@
         : "") +
       `<div class="grm-phases"><div class="grm-ev-head"><strong>PHASES</strong>` +
       `<button type="button" class="grm-btn grm-btn-sm" id="btnAddPhase">+ Phase</button></div>` +
-      eventListHtml(phaseEv, "phase") +
+      eventListHtml(t, phaseEv, "phase") +
       `</div>` +
       `<div class="grm-phases grm-gates"><div class="grm-ev-head"><strong>GATES</strong>` +
       `<button type="button" class="grm-btn grm-btn-sm" id="btnAddGate">+ Gate</button></div>` +
-      eventListHtml(gateEv, "gate") +
+      eventListHtml(t, gateEv, "gate") +
       `</div>`;
 
     function showIdentityEdit(on) {
@@ -2851,8 +2953,608 @@
     $("drawerBody").querySelectorAll(".ev-del").forEach((btn) => {
       btn.onclick = () => removeEvent(t, btn.getAttribute("data-eid"));
     });
+    $("drawerBody").querySelectorAll(".ev-assign").forEach((btn) => {
+      btn.onclick = () =>
+        openAssignModal(
+          t,
+          btn.getAttribute("data-eid"),
+          btn.getAttribute("data-wsid") || ""
+        );
+    });
+    $("drawerBody").querySelectorAll(".ev-unassign").forEach((btn) => {
+      btn.onclick = (ev) => {
+        ev.stopPropagation();
+        unassignFromTitle(t.id, btn.getAttribute("data-aid"));
+      };
+    });
     $("btnAddPhase").onclick = () => addEvent(t, "phase");
     $("btnAddGate").onclick = () => addEvent(t, "gate");
+  }
+
+  function personLoad(personId) {
+    const hits = [];
+    for (const t of state.titles || []) {
+      for (const a of titleAssignments(t)) {
+        if (a.person_id === personId) {
+          hits.push({ title: t, a });
+        }
+      }
+    }
+    return hits;
+  }
+
+  function gameTitle(t) {
+    const name = String((t && t.name) || "").trim();
+    const code = String((t && t.code) || "").trim();
+    if (name && code && name.toUpperCase() !== code.toUpperCase()) return name;
+    return name || code || "Untitled";
+  }
+
+  function parseDay(s) {
+    if (!s) return null;
+    const d = new Date(String(s).slice(0, 10) + "T00:00:00");
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  function decorateAssignmentClient(t, a) {
+    if (a && a.work_status && ("gate" in a || "gates" in a)) return a;
+    const out = Object.assign({}, a || {});
+    const phase = (t.phases || []).find((p) => p.id === out.phase_id) || null;
+    const ws =
+      phase && out.workstream_id
+        ? (phase.workstreams || []).find((w) => w.id === out.workstream_id) ||
+          null
+        : null;
+    const src = ws && (ws.start || ws.end) ? ws : phase;
+    const start = parseDay(src && src.start);
+    const end = parseDay((src && (src.end || src.start)) || null);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let status = "unscheduled";
+    if (start || end) {
+      const s = start || end;
+      const e = end || start;
+      if (e && e < today) status = "done";
+      else if (s && e && s <= today && today <= e) status = "current";
+      else if (s && s > today) status = "upcoming";
+    }
+    const pname = (phase && phase.name) || "";
+    const wname = (ws && ws.name) || "";
+    const gates = [];
+    for (const g of t.phases || []) {
+      const role = g.role || (g.kind === "point" ? "gate" : "phase");
+      if (role !== "gate") continue;
+      const gphase = g.gate_phase_name || "";
+      const gws = g.gate_workstream_name || "";
+      let hit = false;
+      if (gws && wname) hit = gws === wname && (!gphase || gphase === pname);
+      else if (gphase) hit = gphase === pname;
+      if (!hit && phase && (phase.end || phase.start)) {
+        const gd = String(g.start || g.end || "").slice(0, 10);
+        const pe = String(phase.end || phase.start || "").slice(0, 10);
+        hit = !!(gd && pe && gd === pe);
+      }
+      if (!hit) continue;
+      const gd = parseDay(g.start || g.end);
+      gates.push({
+        id: g.id || "",
+        name: g.name || "Gate",
+        date: g.start || g.end || null,
+        relation: g.gate_relation || "",
+        done: !!(gd && gd < today),
+      });
+    }
+    const pin = gates[0] || null;
+    if (
+      status !== "done" &&
+      pin &&
+      pin.done &&
+      ["at_end", "after_end", "offset_from_end", ""].includes(pin.relation || "")
+    ) {
+      status = "done";
+    }
+    out.start = out.start || (src && src.start) || null;
+    out.end = out.end || (src && src.end) || out.start;
+    out.work_status = out.work_status || status;
+    out.gates = out.gates || gates;
+    out.gate = out.gate || pin;
+    out.gate_done = out.gate_done != null ? out.gate_done : !!(pin && pin.done);
+    return out;
+  }
+
+  function workStatusOf(a) {
+    return (a && a.work_status) || "unscheduled";
+  }
+
+  function workStatusLabel(status) {
+    return (
+      {
+        done: "Done",
+        current: "Now",
+        upcoming: "Upcoming",
+        unscheduled: "No dates",
+      }[status] || status || "—"
+    );
+  }
+
+  function isAssignmentOpen(a) {
+    return workStatusOf(a) !== "done";
+  }
+
+  function assignmentSlotLabel(a) {
+    return a.workstream_name
+      ? `${a.phase_name || "phase"} ↳ ${a.workstream_name}`
+      : a.phase_name || "phase";
+  }
+
+  function allAssignmentRows() {
+    const rows = [];
+    for (const t of state.titles || []) {
+      for (const a of titleAssignments(t)) {
+        rows.push({ title: t, a: decorateAssignmentClient(t, a) });
+      }
+    }
+    const rank = { current: 0, upcoming: 1, unscheduled: 2, done: 3 };
+    const key = peopleAssignSort || "status";
+    const dir = peopleAssignSortDir < 0 ? -1 : 1;
+    const cmpStr = (a, b) =>
+      String(a || "").localeCompare(String(b || ""), undefined, {
+        sensitivity: "base",
+      });
+    const cmpDay = (a, b) => {
+      const as = String(a || "");
+      const bs = String(b || "");
+      if (!as && !bs) return 0;
+      if (!as) return 1;
+      if (!bs) return -1;
+      return as.localeCompare(bs);
+    };
+    const tie = (x, y) => {
+      const pn = cmpStr(x.a.person_name, y.a.person_name);
+      if (pn) return pn;
+      const st =
+        (rank[workStatusOf(x.a)] ?? 9) - (rank[workStatusOf(y.a)] ?? 9);
+      if (st) return st;
+      return cmpStr(gameTitle(x.title), gameTitle(y.title));
+    };
+    rows.sort((x, y) => {
+      let d = 0;
+      if (key === "staff") d = cmpStr(x.a.person_name, y.a.person_name);
+      else if (key === "title") d = cmpStr(gameTitle(x.title), gameTitle(y.title));
+      else if (key === "code") d = cmpStr(x.title.code, y.title.code);
+      else if (key === "work")
+        d = cmpStr(assignmentSlotLabel(x.a), assignmentSlotLabel(y.a));
+      else if (key === "role") d = cmpStr(x.a.role, y.a.role);
+      else if (key === "window") d = cmpDay(x.a.start || x.a.end, y.a.start || y.a.end);
+      else if (key === "gate")
+        d = cmpDay(
+          (x.a.gate && x.a.gate.date) || "",
+          (y.a.gate && y.a.gate.date) || ""
+        );
+      else
+        d =
+          (rank[workStatusOf(x.a)] ?? 9) - (rank[workStatusOf(y.a)] ?? 9);
+      if (d) return d * dir;
+      return tie(x, y);
+    });
+    return rows;
+  }
+
+  function renderPeople() {
+    const root = $("viewPeople");
+    if (!root) return;
+    const people = (state.people || []).slice().sort((a, b) => {
+      const aa = a.active === false ? 1 : 0;
+      const bb = b.active === false ? 1 : 0;
+      if (aa !== bb) return aa - bb;
+      return String(a.name || "").localeCompare(String(b.name || ""));
+    });
+    const roles = state.roles || [];
+    const paneNav =
+      `<div class="grm-ppl-panes" role="tablist">` +
+      `<button type="button" class="grm-qchip ${
+        peoplePane === "assignments" ? "is-on" : ""
+      }" data-pane="assignments">Assignments</button>` +
+      `<button type="button" class="grm-qchip ${
+        peoplePane === "roster" ? "is-on" : ""
+      }" data-pane="roster">Roster</button>` +
+      `</div>`;
+
+    let body = "";
+    if (peoplePane === "roster") {
+      const rows = people
+        .map((p) => {
+          const load = personLoad(p.id);
+          const openN = load.filter((h) => isAssignmentOpen(h.a)).length;
+          const loadLab = load.length
+            ? `${openN} open · ${load.length} total`
+            : "—";
+          return (
+            `<tr class="${p.active === false ? "is-inactive" : ""}" data-pid="${esc(
+              p.id
+            )}">` +
+            `<td>${esc(p.name)}</td>` +
+            `<td>${esc(p.role || "—")}</td>` +
+            `<td class="mono">${p.active === false ? "inactive" : "active"}</td>` +
+            `<td class="mono">${esc(loadLab)}</td>` +
+            `<td class="grm-vocab-actions">` +
+            `<button type="button" class="grm-btn grm-btn-sm btn-ppl-edit" data-id="${esc(
+              p.id
+            )}">Edit</button>` +
+            `<button type="button" class="grm-btn grm-btn-sm btn-ppl-toggle" data-id="${esc(
+              p.id
+            )}">${p.active === false ? "Activate" : "Park"}</button>` +
+            `<button type="button" class="grm-btn grm-btn-sm btn-ppl-del" data-id="${esc(
+              p.id
+            )}">Remove</button>` +
+            `</td></tr>`
+          );
+        })
+        .join("");
+      body =
+        `<div class="grm-vocab-intro">` +
+        `<p><strong>Roster</strong> = who exists in the house. Add names and roles here. Pin them onto a title from the ticket (phase or ↳ workstream) — not from this list.</p>` +
+        `<p class="grm-muted">Parked people stay on existing tickets but drop out of the assign picker. Removing someone clears their assignments.</p>` +
+        `<form class="grm-ppl-add" id="formAddPerson">` +
+        `<input name="name" required placeholder="Name" autocomplete="off" />` +
+        `<select name="role">${roleOptionsHtml("")}</select>` +
+        `<button type="submit" class="grm-btn grm-btn-primary">+ Person</button>` +
+        `</form>` +
+        `<form class="grm-ppl-add grm-ppl-role-add" id="formAddRole">` +
+        `<input name="name" required placeholder="New house role" autocomplete="off" />` +
+        `<button type="submit" class="grm-btn">+ Role</button>` +
+        `</form>` +
+        (roles.length
+          ? `<p class="grm-muted mono spine-list">Roles: ${esc(roles.join(" · "))}</p>`
+          : "") +
+        `</div>` +
+        `<section><h3>Employees (${people.length})</h3>` +
+        `<div class="grm-table-wrap"><table class="grm-table grm-ppl-table"><thead><tr>` +
+        `<th>Name</th><th>Role</th><th>Status</th><th>Load</th><th></th>` +
+        `</tr></thead><tbody>` +
+        (rows ||
+          `<tr><td colspan="5" class="grm-muted">No people yet — add a name above.</td></tr>`) +
+        `</tbody></table></div></section>`;
+    } else {
+      const all = allAssignmentRows();
+      const filtered = all.filter((h) => {
+        const done = !isAssignmentOpen(h.a);
+        if (peopleAssignFilter === "open") return !done;
+        if (peopleAssignFilter === "done") return done;
+        return true;
+      });
+      const openN = all.filter((h) => isAssignmentOpen(h.a)).length;
+      const doneN = all.length - openN;
+      const filt =
+        `<div class="grm-ppl-filters">` +
+        [
+          ["open", `Open (${openN})`],
+          ["done", `Done (${doneN})`],
+          ["all", `All (${all.length})`],
+        ]
+          .map(
+            ([k, lab]) =>
+              `<button type="button" class="grm-qchip ${
+                peopleAssignFilter === k ? "is-on" : ""
+              }" data-asg-filter="${k}">${esc(lab)}</button>`
+          )
+          .join("") +
+        `</div>`;
+      const rows = filtered
+        .map((h) => {
+          const a = h.a;
+          const t = h.title;
+          const slot = assignmentSlotLabel(a);
+          const st = workStatusOf(a);
+          const g = a.gate;
+          let gateHtml = `<span class="grm-muted">—</span>`;
+          if (g && g.name) {
+            const gdone = !!g.done;
+            gateHtml =
+              `<span class="grm-badge life-${gdone ? "done" : "open"}" title="${esc(
+                g.name
+              )}">` +
+              `${gdone ? "Gate passed" : "Gate open"}</span>` +
+              `<span class="grm-ppl-gate-name">${esc(g.name)}` +
+              (g.date ? ` · ${esc(g.date)}` : "") +
+              `</span>`;
+          }
+          const window =
+            a.start || a.end
+              ? `${a.start || "?"} → ${a.end || a.start}`
+              : "—";
+          return (
+            `<tr class="grm-asg-row asg-${esc(st)}" data-tid="${esc(t.id)}">` +
+            `<td>${esc(a.person_name || "—")}</td>` +
+            `<td>${esc(gameTitle(t))}</td>` +
+            `<td class="mono">${esc(t.code || "—")}</td>` +
+            `<td>${esc(slot)}</td>` +
+            `<td class="grm-muted">${esc(a.role || "—")}</td>` +
+            `<td class="mono">${esc(window)}</td>` +
+            `<td><span class="grm-badge asg-${esc(st)}">${esc(
+              workStatusLabel(st)
+            )}</span></td>` +
+            `<td class="grm-ppl-gate">${gateHtml}</td>` +
+            `</tr>`
+          );
+        })
+        .join("");
+      body =
+        `<div class="grm-vocab-intro">` +
+        `<p><strong>Assignments</strong> = who is on which game, by phase (or ↳ stream). Game title is the working name. Done = the window ended, or the phase-end gate already passed.</p>` +
+        `<p class="grm-muted">Add or park people on the Roster pane. Assign from a title ticket. Click a column header to sort — Staff groups by person, Status is the upcoming order.</p>` +
+        filt +
+        `</div>` +
+        `<div class="grm-table-wrap"><table class="grm-table grm-asg-table"><thead><tr>` +
+        [
+          ["staff", "Staff"],
+          ["title", "Title"],
+          ["code", "Code"],
+          ["work", "Work"],
+          ["role", "Role"],
+          ["window", "Window"],
+          ["status", "Status"],
+          ["gate", "Gate"],
+        ]
+          .map(([k, lab]) => {
+            const on = peopleAssignSort === k;
+            const mark = on ? (peopleAssignSortDir < 0 ? " ▾" : " ▴") : "";
+            return `<th><button type="button" class="grm-th-sort ${
+              on ? "is-on" : ""
+            }" data-sort="${k}">${esc(lab)}${mark}</button></th>`;
+          })
+          .join("") +
+        `</tr></thead><tbody>` +
+        (rows ||
+          `<tr><td colspan="8" class="grm-muted">${
+            all.length
+              ? "Nothing in this filter."
+              : "Nobody pinned yet. Open a title and use + Crew."
+          }</td></tr>`) +
+        `</tbody></table></div>`;
+    }
+
+    root.innerHTML =
+      `<div class="grm-vocab grm-people">` + paneNav + body + `</div>`;
+
+    root.querySelectorAll("[data-pane]").forEach((btn) => {
+      btn.onclick = () => {
+        peoplePane = btn.getAttribute("data-pane") || "assignments";
+        renderPeople();
+      };
+    });
+    root.querySelectorAll("[data-asg-filter]").forEach((btn) => {
+      btn.onclick = () => {
+        peopleAssignFilter = btn.getAttribute("data-asg-filter") || "open";
+        renderPeople();
+      };
+    });
+    root.querySelectorAll(".grm-th-sort").forEach((btn) => {
+      btn.onclick = (ev) => {
+        ev.stopPropagation();
+        const key = btn.getAttribute("data-sort") || "status";
+        if (peopleAssignSort === key) peopleAssignSortDir *= -1;
+        else {
+          peopleAssignSort = key;
+          peopleAssignSortDir = 1;
+        }
+        renderPeople();
+      };
+    });
+    root.querySelectorAll(".grm-asg-row").forEach((tr) => {
+      tr.addEventListener("click", () => openTitle(tr.getAttribute("data-tid")));
+    });
+
+    const add = $("formAddPerson");
+    if (add) {
+      add.onsubmit = async (e) => {
+        e.preventDefault();
+        const fd = new FormData(add);
+        const name = String(fd.get("name") || "").trim();
+        const role = String(fd.get("role") || "").trim();
+        if (!name) return;
+        const r = await fetch("/api/people", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, role }),
+        });
+        const j = await r.json();
+        if (!j.ok) return toast(j.error || "add failed");
+        toast(j.message || "added");
+        await refresh();
+      };
+    }
+    const addRole = $("formAddRole");
+    if (addRole) {
+      addRole.onsubmit = async (e) => {
+        e.preventDefault();
+        const fd = new FormData(addRole);
+        const name = String(fd.get("name") || "").trim();
+        if (!name) return;
+        const r = await fetch("/api/roles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        });
+        const j = await r.json();
+        if (!j.ok) return toast(j.error || "role failed");
+        toast(j.message || "role saved");
+        await refresh();
+      };
+    }
+    root.querySelectorAll(".btn-ppl-edit").forEach((btn) => {
+      btn.onclick = async () => {
+        const p = personById(btn.getAttribute("data-id"));
+        if (!p) return;
+        const name = prompt("Name", p.name || "");
+        if (name == null || !String(name).trim()) return;
+        const role = prompt("House role", p.role || "");
+        if (role == null) return;
+        const r = await fetch("/api/people/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: p.id,
+            name: String(name).trim(),
+            role: String(role).trim(),
+          }),
+        });
+        const j = await r.json();
+        if (!j.ok) return toast(j.error || "save failed");
+        toast("saved");
+        await refresh();
+      };
+    });
+    root.querySelectorAll(".btn-ppl-toggle").forEach((btn) => {
+      btn.onclick = async () => {
+        const p = personById(btn.getAttribute("data-id"));
+        if (!p) return;
+        const r = await fetch("/api/people/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: p.id, active: p.active === false }),
+        });
+        const j = await r.json();
+        if (!j.ok) return toast(j.error || "save failed");
+        toast(p.active === false ? "active" : "parked");
+        await refresh();
+      };
+    });
+    root.querySelectorAll(".btn-ppl-del").forEach((btn) => {
+      btn.onclick = async () => {
+        const p = personById(btn.getAttribute("data-id"));
+        if (!p) return;
+        if (!confirm(`Remove ${p.name} from the roster? Assignments will be cleared.`))
+          return;
+        const r = await fetch("/api/people/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: p.id }),
+        });
+        const j = await r.json();
+        if (!j.ok) return toast(j.error || "remove failed");
+        toast(j.message || "removed");
+        await refresh();
+      };
+    });
+    root.querySelectorAll(".grm-ppl-hit").forEach((btn) => {
+      btn.onclick = () => openTitle(btn.getAttribute("data-tid"));
+    });
+  }
+
+  function closeAssignModal() {
+    const m = $("modalAssign");
+    if (m) m.hidden = true;
+  }
+
+  function openAssignModal(t, phaseId, wsId) {
+    const phase = (t.phases || []).find((p) => p.id === phaseId);
+    if (!phase) return toast("phase not found");
+    const streams = (phase.workstreams || []).filter((w) => w && w.id);
+    const people = (state.people || []).filter((p) => p.active !== false);
+    if (!people.length) {
+      toast("add people on People → Roster first");
+      return;
+    }
+    $("as_title_id").value = t.id;
+    $("as_phase_id").value = phase.id;
+    const hint = $("modalAssignHint");
+    const titleEl = $("modalAssignTitle");
+    titleEl.textContent = "Assign person";
+    hint.textContent = `Pin someone onto “${phase.name}”${
+      wsId ? " workstream" : ""
+    }. House roster · People tab.`;
+
+    const already = new Set(
+      titleAssignments(t)
+        .filter((a) => a.phase_id === phase.id && (a.workstream_id || "") === (wsId || ""))
+        .map((a) => a.person_id)
+    );
+    const sel = $("as_person");
+    sel.innerHTML = people
+      .map((p) => {
+        const taken = already.has(p.id) ? " (already on this slot)" : "";
+        return `<option value="${esc(p.id)}" ${taken ? "disabled" : ""}>${esc(
+          p.name
+        )}${p.role ? " · " + esc(p.role) : ""}${taken}</option>`;
+      })
+      .join("");
+    const firstFree = people.find((p) => !already.has(p.id));
+    if (firstFree) sel.value = firstFree.id;
+    if (!firstFree) {
+      toast("everyone active is already on this slot");
+      return;
+    }
+
+    const wsWrap = $("as_ws_wrap");
+    const wsSel = $("as_workstream");
+    if (streams.length) {
+      wsWrap.hidden = false;
+      wsSel.innerHTML =
+        `<option value="">Whole phase</option>` +
+        streams
+          .map(
+            (w) =>
+              `<option value="${esc(w.id)}" ${w.id === wsId ? "selected" : ""}>${esc(
+                w.name
+              )}</option>`
+          )
+          .join("");
+      if (wsId) wsSel.value = wsId;
+    } else {
+      wsWrap.hidden = true;
+      wsSel.innerHTML = `<option value="">Whole phase</option>`;
+    }
+
+    const picked = personById(sel.value);
+    $("as_role").innerHTML = roleOptionsHtml(picked ? picked.role : "");
+    sel.onchange = () => {
+      const p = personById(sel.value);
+      $("as_role").innerHTML = roleOptionsHtml(p ? p.role : "");
+    };
+
+    $("modalAssign").hidden = false;
+    setTimeout(() => sel.focus(), 30);
+  }
+
+  async function submitAssignModal(e) {
+    e.preventDefault();
+    const tid = $("as_title_id").value;
+    const phaseId = $("as_phase_id").value;
+    const personId = $("as_person").value;
+    const wsId = ($("as_workstream") && $("as_workstream").value) || "";
+    const role = ($("as_role") && $("as_role").value) || "";
+    if (!personId) return toast("pick a person");
+    const r = await fetch(`/api/titles/${tid}/assign`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        person_id: personId,
+        phase_id: phaseId,
+        workstream_id: wsId,
+        role,
+      }),
+    });
+    const j = await r.json();
+    if (!j.ok) return toast(j.error || "assign failed");
+    closeAssignModal();
+    toast(j.message || "assigned");
+    await refresh();
+    openTitle(tid);
+  }
+
+  async function unassignFromTitle(tid, aid) {
+    if (!aid) return;
+    const r = await fetch(`/api/titles/${tid}/unassign`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: aid }),
+    });
+    const j = await r.json();
+    if (!j.ok) return toast(j.error || "unassign failed");
+    toast(j.message || "unassigned");
+    await refresh();
+    openTitle(tid);
   }
 
   function renderVocab() {
@@ -3101,6 +3803,7 @@
   if ($("tabGantt")) $("tabGantt").onclick = () => setView("gantt");
   $("tabQuarters").onclick = () => setView("quarters");
   $("tabVocab").onclick = () => setView("vocab");
+  if ($("tabPeople")) $("tabPeople").onclick = () => setView("people");
   if ($("tabConfig")) $("tabConfig").onclick = () => setView("config");
   $("filterLine").onchange = render;
   $("filterBucket").onchange = render;
@@ -3124,15 +3827,29 @@
   if ($("formEvent")) {
     $("formEvent").onsubmit = submitEventModal;
   }
+  if ($("btnCancelAssign")) {
+    $("btnCancelAssign").onclick = () => closeAssignModal();
+  }
+  if ($("formAssign")) {
+    $("formAssign").onsubmit = submitAssignModal;
+  }
   // click backdrop to close event modal
   if ($("modalEvent")) {
     $("modalEvent").addEventListener("click", (ev) => {
       if (ev.target === $("modalEvent")) closeEventModal();
     });
   }
+  if ($("modalAssign")) {
+    $("modalAssign").addEventListener("click", (ev) => {
+      if (ev.target === $("modalAssign")) closeAssignModal();
+    });
+  }
   document.addEventListener("keydown", (ev) => {
     if (ev.key === "Escape" && $("modalEvent") && !$("modalEvent").hidden) {
       closeEventModal();
+    }
+    if (ev.key === "Escape" && $("modalAssign") && !$("modalAssign").hidden) {
+      closeAssignModal();
     }
   });
   if ($("newShip")) {

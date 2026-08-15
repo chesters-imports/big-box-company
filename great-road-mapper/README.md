@@ -24,8 +24,9 @@ run-grm.bat
 
 - **+ Title** → empty house spine from product type (phases + workstreams)
 - **Phase** vs **Gate** · **Edit** requires a **reason** (change trail)
+- **People** = Assignments (who is on which game · done vs open) · Roster (add names) · pin from a title’s **phase** or **↳ workstream**
 - **Make BSG rebrand twin** → thin spine + Betsoft Release only
-- **Views:** Board · List · **Gantt** (read-only: phase + workstream bars, gate diamonds, ship tick; same filters; click opens title) · By quarter · …
+- **Views:** Board · List · **Gantt** (read-only: phase + workstream bars, gate diamonds, ship tick; same filters; click opens title) · By quarter · People · …
 - Old bulk-import debris: `prod/safe_box/mausoleum/` only
 
 ### DOS full spine

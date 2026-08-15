@@ -51,6 +51,7 @@
     <button type="button" class="grm-tab" data-view="gantt" id="tabGantt">Gantt</button>
     <button type="button" class="grm-tab" data-view="quarters" id="tabQuarters">By quarter</button>
     <button type="button" class="grm-tab" data-view="vocab" id="tabVocab">Phases & gates</button>
+    <button type="button" class="grm-tab" data-view="people" id="tabPeople">People</button>
     <button type="button" class="grm-tab" data-view="config" id="tabConfig">Configurations</button>
   </nav>
 
@@ -60,6 +61,7 @@
     <section class="grm-view" id="viewGantt" aria-label="Production Gantt (read-only)"></section>
     <section class="grm-view" id="viewQuarters" aria-label="Quarter strips"></section>
     <section class="grm-view" id="viewVocab" aria-label="Shared phase and gate labels"></section>
+    <section class="grm-view" id="viewPeople" aria-label="Employee roster"></section>
     <section class="grm-view" id="viewConfig" aria-label="Product type configurations"></section>
   </main>
 
@@ -74,7 +76,7 @@
   <div class="grm-modal" id="modalNew" hidden>
     <form class="grm-modal-card" id="formNew">
       <h2>New title</h2>
-      <p class="grm-hint">Schedule first. Theme, math model, assignments live on the ticket later — not required to open a board slot.</p>
+      <p class="grm-hint">Schedule first. Theme, math, and crew assignments live on the ticket later — not required to open a board slot.</p>
       <label>Code <input name="code" required placeholder="e.g. BSG-Q2G1-2027" autocomplete="off" /></label>
       <label>Name <input name="name" placeholder="optional · working title" autocomplete="off" /></label>
       <label>Product model
@@ -126,6 +128,30 @@
       <div class="grm-modal-actions">
         <button type="button" class="grm-btn" id="btnCancelEvent">Cancel</button>
         <button type="submit" class="grm-btn grm-btn-primary" id="btnSaveEvent">Save</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="grm-modal" id="modalAssign" hidden>
+    <form class="grm-modal-card" id="formAssign">
+      <h2 id="modalAssignTitle">Assign person</h2>
+      <p class="grm-hint" id="modalAssignHint">Pin someone from the house roster onto this phase work.</p>
+      <input type="hidden" id="as_title_id" />
+      <input type="hidden" id="as_phase_id" />
+      <label>Person
+        <select id="as_person" required></select>
+      </label>
+      <label id="as_ws_wrap">Work
+        <select id="as_workstream">
+          <option value="">Whole phase</option>
+        </select>
+      </label>
+      <label>Role on this slot
+        <select id="as_role"></select>
+      </label>
+      <div class="grm-modal-actions">
+        <button type="button" class="grm-btn" id="btnCancelAssign">Cancel</button>
+        <button type="submit" class="grm-btn grm-btn-primary">Assign</button>
       </div>
     </form>
   </div>
