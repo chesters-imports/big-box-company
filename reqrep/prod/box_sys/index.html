@@ -31,7 +31,7 @@
         </select>
       </label>
       <button type="button" class="rr-btn" id="btnTheme" title="Toggle light / dark">Light</button>
-      <button type="button" class="rr-btn rr-btn-primary" id="btnNew">+ REQ</button>
+      <button type="button" class="rr-btn rr-btn-primary" id="btnNew">+ REPREQ BAY</button>
     </div>
   </div>
 
@@ -44,9 +44,9 @@
     <form class="rr-modal-card" id="formNew">
       <h2>New request</h2>
       <p class="rr-hint">Blank-line breaks → B01, B02… Open from Deck Host launcher (not Chrome).</p>
-      <label>Type
+      <label>Bay
         <select name="req_type">
-          <option value="REQ">REQ — new product / SKU</option>
+          <option value="BAY">BAY — product bay / SKU desk</option>
           <option value="MOD">MOD — change existing SKU</option>
           <option value="ADDENDUM">ADDENDUM</option>
           <option value="BUG">BUG — report / tax for the Frog King</option>
@@ -54,7 +54,7 @@
       </label>
       <label>SKU <input name="sku" required placeholder="e.g. CO.BBC-002-RR" autocomplete="off" /></label>
       <label>Product <input name="product_name" required placeholder="e.g. ReqRep" autocomplete="off" /></label>
-      <p class="rr-hint rr-line-live" id="newTitlePreview">REQ</p>
+      <p class="rr-hint rr-line-live" id="newTitlePreview">BAY</p>
       <label>Producer <input name="producer" placeholder="ROM house — e.g. Big Box Company" autocomplete="off" /></label>
       <label>Hands <input name="hands" placeholder="Face filing — e.g. Daniel Wake" autocomplete="off" /></label>
       <label>Priority
@@ -63,6 +63,14 @@
           <option>High</option>
           <option>Low</option>
           <option>Urgent</option>
+        </select>
+      </label>
+      <label>Status
+        <select name="status">
+          <option value="active">Active — in play</option>
+          <option value="on_hold">On hold — paused, coming back</option>
+          <option value="shelved">Shelved — not in the pile</option>
+          <option value="shipped">Shipped — out the door</option>
         </select>
       </label>
       <label>Seed discussion (optional)

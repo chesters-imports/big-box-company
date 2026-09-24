@@ -17,7 +17,7 @@ PROD = BOX_SYS.parent
 SAFE_BOX = PROD / "safe_box"
 STORE = SAFE_BOX / "cases.json"
 AGENT_INBOX = SAFE_BOX / "agent_inbox.json"
-HOST = "127.0.0.1"
+HOST = "0.0.0.0"
 PORT = 42962
 
 
@@ -44,13 +44,59 @@ def empty_store() -> dict[str, Any]:
     }
 
 
-# Filing kinds — not free text (add more when house needs them)
+# Bay kinds — one bay per product; tickets live inside
 REQ_TYPES = (
-    "REQ",  # new product / new SKU ask
+    "BAY",  # product bay (tickets for that SKU)
     "MOD",  # modification to an existing SKU
     "ADDENDUM",  # addendum on an existing ticket/SKU
     "BUG",  # Frog King taxes / bug report (not bubble wrap)
 )
+_REQ_TYPE_ALIASES = {"REQ": "BAY"}  # legacy filing kind
+
+
+def bay_kind(raw: str | None) -> str:
+    kind = (raw or "BAY").strip().upper() or "BAY"
+    kind = _REQ_TYPE_ALIASES.get(kind, kind)
+    if kind not in REQ_TYPES:
+        kind = "BAY"
+    return kind
+
+
+def bay_file_code(raw: str | None) -> str:
+    code = (raw or "").strip()
+    m = re.match(r"^REQ-(\d+)$", code, re.I)
+    if m:
+        return f"BAY-{int(m.group(1)):03d}"
+    return code
+
+
+# Hands-set project state — not the old discuss/scope/prep pipeline
+BAY_STATUSES = (
+    "active",  # in play
+    "on_hold",  # paused, coming back
+    "shelved",  # not in the pile (cousin of on hold, longer park)
+    "shipped",  # out the door
+)
+_BAY_STATUS_ALIASES = {
+    "discussing": "active",
+    "scope_locked": "active",
+    "prep_draft": "active",
+    "building": "active",
+    "signed": "active",
+    "done": "shipped",
+    "parked": "shelved",
+    "hold": "on_hold",
+    "onhold": "on_hold",
+    "paused": "on_hold",
+}
+
+
+def bay_status(raw: str | None) -> str:
+    s = (raw or "active").strip().lower().replace(" ", "_").replace("-", "_")
+    s = _BAY_STATUS_ALIASES.get(s, s)
+    if s not in BAY_STATUSES:
+        s = "active"
+    return s
 
 # Work-order lane on a block (ticket inside a case) · B08
 WORK_LANES = (
@@ -73,6 +119,14 @@ TICKET_KINDS = (
     "BUG",  # bugs
     "CHG",  # major change, not a bug
 )
+
+TICKET_PRIORITIES = ("Low", "Normal", "High", "Urgent")
+_PRI_ALIASES = {p.lower(): p for p in TICKET_PRIORITIES}
+
+
+def ticket_priority(raw: str | None) -> str:
+    s = (raw or "Normal").strip()
+    return _PRI_ALIASES.get(s.lower().replace(" ", "_"), "Normal")
 
 
 def normalize_chunk(ch: dict[str, Any]) -> None:
@@ -105,11 +159,12 @@ def normalize_chunk(ch: dict[str, Any]) -> None:
             ch["ticket_kind"] = "BUG"
         elif body_u.lstrip().startswith("REQUEST:") or "DISCUSS CHANGE" in body_u[:80]:
             ch["ticket_kind"] = "CHG"
+    ch["priority"] = ticket_priority(ch.get("priority"))
 
 
 def compose_title(case: dict[str, Any]) -> str:
     """Display line only — derived from type + SKU + product name (Hands' shape)."""
-    kind = (case.get("req_type") or "REQ").strip().upper() or "REQ"
+    kind = bay_kind(case.get("req_type"))
     sku = (case.get("sku") or "").strip()
     name = (case.get("product_name") or "").strip()
     if sku and name:
@@ -126,20 +181,20 @@ def parse_title_into_parts(title: str) -> dict[str, str]:
     t = (title or "").strip()
     out: dict[str, str] = {}
     m = re.match(
-        r'^(REQ|MOD|ADDENDUM|BUG)\s*:\s*(?:ROM\s+SKU\s+)?([^\s"]+)?\s*(?:"([^"]*)")?\s*$',
+        r'^(BAY|REQ|MOD|ADDENDUM|BUG)\s*:\s*(?:ROM\s+SKU\s+)?([^\s"]+)?\s*(?:"([^"]*)")?\s*$',
         t,
         re.I,
     )
     if m:
-        out["req_type"] = m.group(1).upper()
+        out["req_type"] = bay_kind(m.group(1))
         if m.group(2):
             out["sku"] = m.group(2).strip()
         if m.group(3):
             out["product_name"] = m.group(3).strip()
         return out
-    m2 = re.match(r'^(REQ|MOD|ADDENDUM|BUG)\s*:\s*"([^"]+)"\s*$', t, re.I)
+    m2 = re.match(r'^(BAY|REQ|MOD|ADDENDUM|BUG)\s*:\s*"([^"]+)"\s*$', t, re.I)
     if m2:
-        out["req_type"] = m2.group(1).upper()
+        out["req_type"] = bay_kind(m2.group(1))
         out["product_name"] = m2.group(2).strip()
     return out
 
@@ -170,15 +225,16 @@ def normalize_case(case: dict[str, Any]) -> None:
         if not (case.get("product_name") or "").strip() and not parts:
             case["product_name"] = str(case.get("title") or "").strip()
 
-    kind = (case.get("req_type") or "REQ").strip().upper() or "REQ"
-    if kind not in REQ_TYPES:
-        kind = "REQ"
+    kind = bay_kind(case.get("req_type"))
     case["req_type"] = kind
+    if case.get("req_code"):
+        case["req_code"] = bay_file_code(str(case.get("req_code")))
     if "sku" not in case:
         case["sku"] = ""
     if "product_name" not in case:
         case["product_name"] = ""
     case["title"] = compose_title(case)
+    case["status"] = bay_status(case.get("status"))
 
 
 def seed_demo(store: dict[str, Any]) -> None:
@@ -190,15 +246,15 @@ def seed_demo(store: dict[str, Any]) -> None:
     store["cases"].append(
         {
             "id": "case_demo01",
-            "req_code": "REQ-001",
-            "req_type": "REQ",
+            "req_code": "BAY-001",
+            "req_type": "BAY",
             "sku": "CO.BBC-002-RR",
             "product_name": "ReqRep",
-            "title": 'REQ: ROM SKU CO.BBC-002-RR "ReqRep"',
+            "title": 'BAY: ROM SKU CO.BBC-002-RR "ReqRep"',
             "producer": "Big Box Company",
             "hands": "Daniel Wake",
             "priority": "High",
-            "status": "discussing",
+            "status": "active",
             "created": t,
             "updated": t,
             "chunks": [
@@ -272,17 +328,35 @@ def load_store() -> dict[str, Any]:
     ensure_dirs()
     if not STORE.is_file():
         store = empty_store()
-        seed_demo(store)
         save_store(store)
         return store
     try:
         data = json.loads(STORE.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
         data = empty_store()
-        seed_demo(data)
         save_store(data)
-    if not data.get("cases"):
-        seed_demo(data)
+        return data
+    if "cases" not in data or data.get("cases") is None:
+        data["cases"] = []
+    dirty = False
+    for case in data.get("cases") or []:
+        before = (
+            case.get("req_code"),
+            case.get("req_type"),
+            case.get("title"),
+            case.get("status"),
+        )
+        normalize_case(case)
+        ensure_chunk_refs(case)
+        after = (
+            case.get("req_code"),
+            case.get("req_type"),
+            case.get("title"),
+            case.get("status"),
+        )
+        if before != after:
+            dirty = True
+    if dirty:
         save_store(data)
     return data
 
@@ -315,7 +389,7 @@ def build_agent_inbox(store: dict[str, Any]) -> dict[str, Any]:
                 "case_title": case.get("title") or compose_title(case),
                 "sku": case.get("sku"),
                 "product_name": case.get("product_name"),
-                "priority": case.get("priority") or "Normal",
+                "priority": ticket_priority(ch.get("priority")),
                 "ticket_kind": ch.get("ticket_kind") or "IDA",
                 "work_lane": lane,
                 "peek": peek,
@@ -411,7 +485,7 @@ def find_case(store: dict[str, Any], case_id: str) -> dict[str, Any] | None:
 
 def next_req_code(store: dict[str, Any]) -> str:
     store["seq"] = int(store.get("seq") or 0) + 1
-    return f"REQ-{store['seq']:03d}"
+    return f"BAY-{store['seq']:03d}"
 
 
 def next_ticket_seq(case: dict[str, Any]) -> int:
@@ -434,8 +508,8 @@ def next_ticket_seq(case: dict[str, Any]) -> int:
 
 
 def format_ticket_ref(case: dict[str, Any], kind: str, seq: int) -> str:
-    """REQ-001-BUG06 shape (Hands B10)."""
-    code = (case.get("req_code") or "REQ-000").strip()
+    """BAY-001-BUG06 shape (Hands B10)."""
+    code = (case.get("req_code") or "BAY-000").strip()
     k = (kind or "IDA").upper()
     if k not in TICKET_KINDS:
         k = "IDA"
@@ -448,7 +522,7 @@ def next_block_ref(case: dict[str, Any], kind: str = "IDA") -> str:
 
 
 def ensure_chunk_refs(case: dict[str, Any]) -> None:
-    """Normalize kinds/lanes; refs = REQ-###-KIND## by list order (unique)."""
+    """Normalize kinds/lanes; refs = BAY-###-KIND## by list order (unique)."""
     for i, ch in enumerate(case.get("chunks") or [], start=1):
         normalize_chunk(ch)
         ch["ticket_seq"] = i
@@ -586,13 +660,13 @@ class Handler(SimpleHTTPRequestHandler):
             case = {
                 "id": new_id("case"),
                 "req_code": next_req_code(store),
-                "req_type": (data.get("req_type") or "REQ").strip().upper(),
+                "req_type": bay_kind(data.get("req_type")),
                 "sku": (data.get("sku") or "").strip(),
                 "product_name": (data.get("product_name") or data.get("title") or "").strip(),
                 "producer": (data.get("producer") or "").strip(),
                 "hands": (data.get("hands") or data.get("employee") or "").strip(),
                 "priority": (data.get("priority") or "Normal").strip(),
-                "status": "discussing",
+                "status": bay_status(data.get("status")),
                 "created": t,
                 "updated": t,
                 "chunks": [],
@@ -620,6 +694,7 @@ class Handler(SimpleHTTPRequestHandler):
                             "ref": format_ticket_ref(case, "IDA", seq),
                             "body": para,
                             "work_lane": "discussion",
+                            "priority": "Normal",
                             "closed": False,
                             "closed_at": None,
                             "closed_by": None,
@@ -656,18 +731,16 @@ class Handler(SimpleHTTPRequestHandler):
                 "ref": format_ticket_ref(case, tkind, seq),
                 "body": body_text,
                 "work_lane": "discussion",
+                "priority": ticket_priority(data.get("priority")),
                 "closed": False,
                 "closed_at": None,
                 "closed_by": None,
                 "close_note": "",
                 "comments": [],
             }
+            normalize_chunk(chunk)
             case.setdefault("chunks", []).append(chunk)
             case["updated"] = now()
-            if case.get("status") == "signed":
-                pass
-            elif case.get("status") not in ("scope_locked", "prep_draft", "building"):
-                case["status"] = "discussing"
             save_store(store)
             code, body, ctype = json_bytes({"case": case, "chunk": chunk}, 201)
             self._send(code, body, ctype)
@@ -824,6 +897,30 @@ class Handler(SimpleHTTPRequestHandler):
             self._send(code, body, ctype)
             return
 
+        m = re.fullmatch(r"/api/cases/([^/]+)/chunks/([^/]+)/priority", path)
+        if m:
+            case = find_case(store, m.group(1))
+            if not case:
+                code, body, ctype = json_bytes({"error": "not found"}, 404)
+                self._send(code, body, ctype)
+                return
+            chunk = next(
+                (ch for ch in case.get("chunks") or [] if ch.get("id") == m.group(2)),
+                None,
+            )
+            if not chunk:
+                code, body, ctype = json_bytes({"error": "chunk not found"}, 404)
+                self._send(code, body, ctype)
+                return
+            pri = ticket_priority(data.get("priority"))
+            chunk["priority"] = pri
+            normalize_chunk(chunk)
+            case["updated"] = now()
+            save_store(store)
+            code, body, ctype = json_bytes({"case": case, "chunk": chunk})
+            self._send(code, body, ctype)
+            return
+
         m = re.fullmatch(r"/api/cases/([^/]+)/chunks/([^/]+)/reopen", path)
         if m:
             case = find_case(store, m.group(1))
@@ -849,7 +946,6 @@ class Handler(SimpleHTTPRequestHandler):
             chunk["closed_at"] = None
             chunk["closed_by"] = None
             case["updated"] = now()
-            case["status"] = "discussing"
             save_store(store)
             code, body, ctype = json_bytes({"case": case, "chunk": chunk})
             self._send(code, body, ctype)
@@ -876,7 +972,6 @@ class Handler(SimpleHTTPRequestHandler):
             if data.get("lock") is True:
                 scope["locked"] = True
                 scope["locked_at"] = now()
-                case["status"] = "scope_locked"
             if data.get("unlock") is True:
                 if (case.get("prep") or {}).get("signed"):
                     code, body, ctype = json_bytes(
@@ -886,7 +981,6 @@ class Handler(SimpleHTTPRequestHandler):
                     return
                 scope["locked"] = False
                 scope["locked_at"] = None
-                case["status"] = "discussing"
             case["updated"] = now()
             save_store(store)
             code, body, ctype = json_bytes({"case": case})
@@ -913,11 +1007,8 @@ class Handler(SimpleHTTPRequestHandler):
             if data.get("generate"):
                 # Local rewrite from closed chunks + scope (no external model).
                 prep["body"] = build_prep(case)
-                case["status"] = "prep_draft"
             elif "body" in data:
                 prep["body"] = str(data.get("body") or "")
-                if not prep.get("signed"):
-                    case["status"] = "prep_draft"
             if data.get("sign") is True:
                 if not (case.get("scope") or {}).get("locked"):
                     code, body, ctype = json_bytes(
@@ -934,7 +1025,6 @@ class Handler(SimpleHTTPRequestHandler):
                 prep["signed"] = True
                 prep["signed_at"] = now()
                 prep["signed_by"] = "hands"
-                case["status"] = "signed"
             case["updated"] = now()
             save_store(store)
             code, body, ctype = json_bytes({"case": case})
@@ -949,7 +1039,7 @@ class Handler(SimpleHTTPRequestHandler):
                 self._send(code, body, ctype)
                 return
             if "req_type" in data:
-                case["req_type"] = str(data.get("req_type") or "REQ").strip().upper()
+                case["req_type"] = bay_kind(data.get("req_type"))
             if "sku" in data:
                 case["sku"] = str(data.get("sku") or "").strip()
             if "product_name" in data:
@@ -962,6 +1052,8 @@ class Handler(SimpleHTTPRequestHandler):
                 ).strip()
             if "priority" in data:
                 case["priority"] = str(data.get("priority") or "").strip()
+            if "status" in data:
+                case["status"] = bay_status(data.get("status"))
             normalize_case(case)
             case["updated"] = now()
             save_store(store)
@@ -1020,7 +1112,7 @@ def build_prep(case: dict[str, Any]) -> str:
         f"# Product prep for an agent",
         f"",
         f"**Bay file:** {case.get('req_code') or '—'}  ",
-        f"**Type:** {case.get('req_type') or 'REQ'}  ",
+        f"**Bay:** {case.get('req_type') or 'BAY'}  ",
         f"**SKU:** {case.get('sku') or '—'}  ",
         f"**Product:** {case.get('product_name') or '—'}  ",
         f"**Title line:** {case.get('title') or compose_title(case)}  ",
