@@ -1,0 +1,562 @@
+{
+  "version": 1,
+  "product": "reqrep",
+  "chip": "CO.BBC-002-RR",
+  "seq": 3,
+  "cases": [
+    {
+      "id": "case_609e3cb8",
+      "req_code": "BAY-003",
+      "req_type": "BAY",
+      "sku": "43210-POCKETGO",
+      "product_name": "My Pocket Go",
+      "producer": "My Pocket Things",
+      "hands": "Kitten",
+      "priority": "High",
+      "status": "active",
+      "created": 1789788433,
+      "updated": 1789927405,
+      "chunks": [
+        {
+          "id": "chk_c9dbc4d9",
+          "ticket_kind": "BUG",
+          "ticket_seq": 1,
+          "ref": "BAY-003-BUG01",
+          "body": "Stamp marks recently added: you can mark any page with a stamp, but it only works inside one pocket host — go.codes — not across the entire Pocket Go.\n\nExpected: stamp any page anywhere in Pocket Go.\nActual: stamping appears limited to go.codes; other hosts/pages do not get the stamp affordance (or stamps do not stick).\n\nFiled from Hands via aubel; discussion first, no fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Normal",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_ecb06426",
+          "ticket_kind": "IDA",
+          "ticket_seq": 2,
+          "ref": "BAY-003-IDA02",
+          "body": "Go. vs Roam. host model needs a real distinction in management.\n\nGo. hosts = things made inside the pocket.\nRoam. hosts = folders outside the pocket that Pocket Go points at.\n\nToday they are mingled together in host management with no clear separation beyond (broken/uneven) edit behavior. Hands wants them treated as two kinds, not one blended list/process.\n\nDiscussion first — may spawn follow-on tickets.",
+          "work_lane": "discussion",
+          "priority": "Normal",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_fe6953a5",
+          "ticket_kind": "BUG",
+          "ticket_seq": 3,
+          "ref": "BAY-003-BUG03",
+          "body": "Roam host edit chrome is a different product from Go host edit chrome.\n\nRegular (Go) host: shows front matter.\nRoam host: shows a bunch of input boxes / location-header UI with different layout, visibility, and functionality.\n\nExpected: coherent edit surface that respects host kind without feeling like two unrelated apps.\nActual: Roam location-headers area is completely different and worse to manage.\n\nRelated to go/roam distinction; filed separately so UI can be tracked on its own.",
+          "work_lane": "closed",
+          "priority": "Normal",
+          "closed": true,
+          "closed_at": 1789906956,
+          "closed_by": "hands",
+          "close_note": "confirmed",
+          "comments": [
+            {
+              "id": "cm_e7cf9c8a",
+              "author": "hands",
+              "text": "Prefer the simple front matter headers editor being used for the go.* hosts. Replicate the same editor method for the roam.* hosts with pre-filled lines for the expected values.",
+              "created": 1789852020
+            },
+            {
+              "id": "cm_453e4a4d",
+              "author": "agent",
+              "text": "Implemented on Command Station via librarian.js (grok CLI run was cancelled mid-patch; finished manually).\n\n- roam.* now uses the same shell frontmatter textarea as go.* (pane no longer hidden)\n- expected roam fields pre-filled as YAML: kind / source / title / environment\n- Keep parses that frontmatter for PUT what=roam\n- separate source/title/env inputs removed; Disconnect + hint remain in slim roam pane\n- backup: prod/www_sys/librarian.js.bak-bug03\n\nPlease hard-refresh Pocket Go BIOS hosts face and verify a roam host edits like go frontmatter.",
+              "created": 1789852752
+            },
+            {
+              "id": "cm_e710bedd",
+              "author": "agent",
+              "text": "Follow-up: {{doors:roam}} was not seeing go-style shell frontmatter because roam Keep only updated _hosts.yaml.\\n\\nNow roam Keep also writes the host shell (_shell.md) from the same frontmatter textarea, and the editor prefers existing shell headers when present (falls back to yaml seed). After Keep + refresh, section/deck/title in roam frontmatter should show on {{doors:roam}}.",
+              "created": 1789855038
+            }
+          ]
+        },
+        {
+          "id": "chk_813874a2",
+          "ticket_kind": "CHG",
+          "ticket_seq": 4,
+          "ref": "BAY-003-CHG04",
+          "body": "Overall Roam host management process is bad end-to-end.\n\nNot just one control — the whole flow of pointing at outside folders, editing them, and keeping them distinct from in-pocket Go hosts needs a cleaner process (listing, create/attach, edit, visibility).\n\nDepends on / follows the go vs roam distinction work. No fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Low",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_aaaf9485",
+          "ticket_kind": "CHG",
+          "ticket_seq": 5,
+          "ref": "BAY-003-CHG05",
+          "body": "Bottom-of-bios plus-button capabilities should collapse into a single + when there is not enough room to show them all, instead of word-wrapping.\n\nExpected: if the action row overflows, overflow actions tuck under one plus (menu/overflow control).\nActual: the plus capabilities wrap to additional lines when space is tight.\n\nDiscussion first; no fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Normal",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_c62ef755",
+          "ticket_kind": "BUG",
+          "ticket_seq": 6,
+          "ref": "BAY-003-BUG06",
+          "body": "BIOS help button renders off-screen when the BIOS window is not wide enough.\n\nExpected: help control stays visible / reachable at narrow widths (reflow, overflow menu, or clamp within the chrome).\nActual: if BIOS is too narrow, the help button draws past the visible edge.\n\nRelated to bottom-of-bios action-row layout (see CHG05); filed as its own bug. No fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Normal",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_0e93a08a",
+          "ticket_kind": "IDA",
+          "ticket_seq": 7,
+          "ref": "BAY-003-IDA07",
+          "body": "Idea: official pocket Help section as real markdown pages, not only BIOS-inline help.\n\nToday help pops open inside the BIOS and you can manage/edit it there, but that is a hassle. Hands wants a whole Help area in the pocket — full markdown pages in the pocket environment — that BIOS can also load for a quick glance.\n\nDesired shape:\n- Help lives as first-class pocket pages (edit in the pocket like other markdown).\n- BIOS can still open/load those pages to skim without being the only editor.\n\nFiled as IDA (idea/architecture). Could become CHG when scoped. No fix in this filing.\nNote: Hands also wants a broader array of filing capabilities in ReqRep eventually (idea vs change distinction); not blocking this ticket.",
+          "work_lane": "discussion",
+          "priority": "Low",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_e5767a26",
+          "ticket_kind": "IDA",
+          "ticket_seq": 8,
+          "ref": "BAY-003-IDA08",
+          "body": "Placeholder: redesign Detective and Librarian marks (copy + visual design).\n\nHands wants to change what those marks say and how they look, but does not know the new wording/design yet. This ticket is a marker to remember — not a spec.\n\nWhen inspiration lands, reopen scope with concrete copy/design. No fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Low",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_f2cae9b0",
+          "ticket_kind": "CHG",
+          "ticket_seq": 9,
+          "ref": "BAY-003-CHG09",
+          "body": "Rework token DSL to be more Python-like: indentation matters, no end/close events.\n\nDesired model: open a div (or other block) and do not close it — it contains whatever is indented/tabbed inside it. Drop explicit end events in favor of indent-based nesting.\n\nDiscussion/scope before rewrite; no fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Normal",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_5bddd35a",
+          "ticket_kind": "BUG",
+          "ticket_seq": 10,
+          "ref": "BAY-003-BUG10",
+          "body": "BIOS bottom bar always shows an inline \"Ctrl+S\" hint next to the Keep button. Remove it — no inline shortcut hint needed there.\n\nLikely contributing to bottom-bar blowouts / overflow (see CHG05, BUG06). Expected: Keep without the Ctrl+S chrome. Actual: hint always present and crowds the bar.\n\nNo fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Normal",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_ccf921fe",
+          "ticket_kind": "BUG",
+          "ticket_seq": 11,
+          "ref": "BAY-003-BUG11",
+          "body": "Session restore: closing Pocket Go (\"pocket internet\") and opening again should relaunch the same windows that were open last time.\n\nHands asked for this earlier; it does not restore correctly inside Deck Host or when running in a browser-as-app (e.g. Epiphany app window).\n\nExpected: reopen with previous window set restored.\nActual: restore fails / incomplete in Deck Host and browser-app launches.\n\nNo fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Normal",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_711655a5",
+          "ticket_kind": "BUG",
+          "ticket_seq": 12,
+          "ref": "BAY-003-BUG12",
+          "body": "External pictures do not work with the Pocket Go image system.\n\nExample: Shields.io badges (and similar remote image URLs) cannot be used.\n\nExpected: remote/external images load through the image system like local ones.\nActual: external pictures fail / are unsupported.\n\nNo fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Normal",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_9f44f54c",
+          "ticket_kind": "BUG",
+          "ticket_seq": 13,
+          "ref": "BAY-003-BUG13",
+          "body": "TPS time parsing: bare integers 1000–2999 are treated as year grain, not unix epoch. That blocks unambiguous unix when ingesting deep historical / \"jesus time\" events (year stamps and small/legacy numbers collide).\n\nIdea: accept a u-prefix for unix, e.g. u:1726588800 or u1726588800, so year grain and real epoch seconds do not fight. parse_tps_time (and injector hidden:tps rows that call it) should honor the prefix.\n\nContext: dream-terminal / Daily Inventory reingest via injector; {{time:now}} works; typed unix via {{text:…}} inside hidden:tps already bins as clock for large epoch ints — the gap is the 1000–2999 band and future historical ingest.\n\nFiled from Hands via aubel; park in bug bay for now, no fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Low",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_acd331b4",
+          "ticket_kind": "BUG",
+          "ticket_seq": 14,
+          "ref": "BAY-003-BUG14",
+          "body": "Work tabs drop in-progress edits when switching.\n\nToday pocket-work-tabs (www.js) only stores href / label / back / fwd in sessionStorage. switchTab / closeTab call go(href) → pocketSoftGo or location.assign, which reloads the desk and tears down the DOM. Unsaved injector form fields, BIOS / librarian editor buffers, and other in-flight inputs are lost.\n\nExpected: toggling working tabs keeps drafts for each tab until Keep / post / discard (or tab close with an explicit dump).\nActual: leave a half-filled form or BIOS edit, switch tab, come back → blank / last-saved page.\n\nPossible approach: per-tab draft bag keyed by tab id (sessionStorage) — snapshot inputs / textareas / contenteditable / CM before navigate; restore on pageshow. Librarian already keeps some editor draft in memory for face toggles; that does not survive work-tab navigation.\n\nFiled from Hands via aubel; discussion first.",
+          "work_lane": "closed",
+          "priority": "Normal",
+          "closed": true,
+          "closed_at": 1789907289,
+          "closed_by": "hands",
+          "close_note": "confirmed",
+          "comments": [
+            {
+              "id": "cm_f7ed2724",
+              "author": "hands",
+              "text": "Description is complete. No need for further discussion. Lets run via Grok CLI on the CommandStation9.",
+              "created": 1789907052
+            },
+            {
+              "id": "cm_d374fe89",
+              "author": "hands",
+              "text": "Applied on Command Station (usage-ok cycle; skipped grok CLI this run). www.js: per-tab draft bag in sessionStorage (pocket-go-work-tab-drafts-v1). Capture inputs/textareas/selects/CM/contenteditable before tab switch/open/back/fwd/pagehide; restore on pageshow (+delayed retries for CM mount). Drop draft on tab close or form submit. Cache bust www.js?v=20260920082400. Backup: www.js.bak-bug14. Hard-refresh Pocket Go and try: fill injector or BIOS, switch work tab, return — clay should still be there.",
+              "created": 1789907222
+            }
+          ]
+        },
+        {
+          "id": "chk_4711cf2f",
+          "ticket_kind": "CHG",
+          "ticket_seq": 15,
+          "ref": "BAY-003-CHG15",
+          "body": "Page-level hide from dir / file trees.\n\nWant: frontmatter \\hidden: true\\ (and sensible aliases) on a normal .md page so it does not appear in \\{{dir}}\\, \\{{list}}\\, \\{{files}}\\, \\{{spines}}\\, dirtree / tree listings — while still opening if you know the path / jump to it.\n\nToday: only stash prefixes \\~\\ / \\.\\ stay off lists (see stash_name / visible_kids). Underscore names stay visible. Host \\show: false\\ in _hosts.yaml only hides whole go/roam doors. index.md / _shell.md are already reserved off lists.\n\nContext: working in go.terminal.io; sometimes a page should stay off the directory without renaming to .foo / ~foo.\n\nFiled from Hands via aubel; park for now, no fix in this filing.",
+          "work_lane": "test",
+          "priority": "Normal",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": [
+            {
+              "id": "cm_01ea5f88",
+              "author": "hands",
+              "text": "Shipped on the fly (Hands wanted the knob now). server.py: note_list_hidden / path_list_hidden — frontmatter hidden:true (also hide:true, show:false, listed:false, etc via _parse_show_flag). visible_kids skips those .md/.canvas so {{dir}}/{{files}}/dirtree hide them; page still opens by path. Backup server.py.bak-chg15-hidden. Pocket Go restarted.",
+              "created": 1789927405
+            }
+          ]
+        }
+      ],
+      "scope": {
+        "body": "",
+        "locked": false,
+        "locked_at": null
+      },
+      "prep": {
+        "body": "",
+        "signed": false,
+        "signed_at": null,
+        "signed_by": null
+      },
+      "title": "BAY: ROM SKU 43210-POCKETGO \"My Pocket Go\""
+    },
+    {
+      "id": "case_b95f3a75",
+      "req_code": "BAY-002",
+      "req_type": "BAY",
+      "sku": "43182-GLASS",
+      "product_name": "The Glass Compost",
+      "producer": "Le Awn Industries",
+      "hands": "Kitten",
+      "priority": "Low",
+      "status": "active",
+      "created": 1789787516,
+      "updated": 1789789907,
+      "chunks": [
+        {
+          "id": "chk_2c3a29eb",
+          "ticket_kind": "BUG",
+          "ticket_seq": 1,
+          "ref": "BAY-002-BUG01",
+          "body": "When launched from the ROM Launcher, The Glass Compost opens fullscreen like a Sophia Desk product. It should not — it should open in a normal desk window, not desk-fullscreen chrome.\n\nDo not fix tonight; filed to test ReqRep bay + ticket filing from aubel. Repro: launch glass-compost (43182-GLASS) from ROM Launcher.",
+          "work_lane": "discussion",
+          "priority": "Normal",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        }
+      ],
+      "scope": {
+        "body": "",
+        "locked": false,
+        "locked_at": null
+      },
+      "prep": {
+        "body": "",
+        "signed": false,
+        "signed_at": null,
+        "signed_by": null
+      },
+      "title": "BAY: ROM SKU 43182-GLASS \"The Glass Compost\""
+    },
+    {
+      "id": "case_demo01",
+      "req_code": "BAY-001",
+      "req_type": "BAY",
+      "sku": "42962-REQREP",
+      "product_name": "ReqRep",
+      "title": "BAY: ROM SKU 42962-REQREP \"ReqRep\"",
+      "producer": "Big Box Company",
+      "hands": "'Daniel Wake'",
+      "priority": "Low",
+      "status": "active",
+      "created": 1789782055,
+      "updated": 1789789932,
+      "chunks": [
+        {
+          "id": "chk_a1",
+          "ref": "BAY-001-IDA01",
+          "body": "Big Box needs a desk where product requests are discussed in numbered blocks, with Hands sealing each block when agreed.",
+          "closed": true,
+          "closed_at": 1789782529,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_1",
+              "author": "agent",
+              "text": "Recommend: open threads on each block, AGREED seal, then a separate Product prep sheet for build.",
+              "created": 1789782055
+            },
+            {
+              "id": "cm_2",
+              "author": "hands",
+              "text": "Yes. Match the loreBOX planner rhythm — close the fight, then freeze.",
+              "created": 1789782056
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 1,
+          "priority": "Normal"
+        },
+        {
+          "id": "chk_a2",
+          "ref": "BAY-001-IDA02",
+          "body": "Intake shows which producer house filed the work and which Hands face is wearing the request — not a second copy of the same person under two labels.",
+          "closed": true,
+          "closed_at": 1789782065,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_3",
+              "author": "hands",
+              "text": "Producer = ROM house. Hands = face on the filing. Priority as usual.",
+              "created": 1789782057
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 2,
+          "priority": "Normal"
+        },
+        {
+          "id": "chk_a3",
+          "ref": "BAY-001-IDA03",
+          "body": "After scope is locked, wire rewrites a clean Product prep for the agent. Hands signs before any first slice starts.",
+          "closed": true,
+          "closed_at": 1789782526,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 3,
+          "priority": "Normal"
+        },
+        {
+          "id": "chk_4522ec54",
+          "ticket_kind": "CHG",
+          "ticket_seq": 4,
+          "ref": "BAY-001-CHG04",
+          "body": "change status drop-down to a chip design like priority. clicking the chip displays the other options for rapid adjustment.",
+          "work_lane": "paused",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": [],
+          "priority": "Normal"
+        },
+        {
+          "id": "chk_e8819ee2",
+          "ticket_kind": "CHG",
+          "ticket_seq": 5,
+          "ref": "BAY-001-CHG05",
+          "body": "add click function to priority chip so clicking it allows a small set of chips to show. user can quickly click the chip and choose a different priority. see sister issue BAY-001-CHG04",
+          "work_lane": "paused",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": [],
+          "priority": "Normal"
+        },
+        {
+          "id": "chk_d1be7622",
+          "ticket_kind": "IDA",
+          "ticket_seq": 6,
+          "ref": "BAY-001-IDA06",
+          "body": "a script that prints action_now from the inbox and, for one RUN ticket, invokes Grok CLI and POSTs the reply. No new service, no new bill, proof that the desk can drive a bot",
+          "work_lane": "discussion",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": [],
+          "priority": "Low"
+        },
+        {
+          "id": "chk_b9e80115",
+          "ticket_kind": "CHG",
+          "ticket_seq": 7,
+          "ref": "BAY-001-CHG07",
+          "body": "Addition: the ability to set priority on the tickets in a bay",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1789789827,
+          "closed_by": "hands",
+          "close_note": "confirm",
+          "comments": [
+            {
+              "id": "cm_db2b7038",
+              "author": "agent",
+              "text": "Shipped: tickets now have their own priority (Low / Normal / High / Urgent). Chip on the ticket bar — click to expand, pick one. New ticket composer has Pri. Inbox sorts on ticket pri, not bay pri. Lane → TEST for Hands QA.",
+              "created": 1789783995
+            }
+          ],
+          "priority": "Normal"
+        },
+        {
+          "id": "chk_69a745df",
+          "ticket_kind": "IDA",
+          "ticket_seq": 8,
+          "ref": "BAY-001-IDA08",
+          "body": "Broader filing-type options beyond BUG / IDA / CHG.\n\nHands is already bumping into the limit while filing Pocket Go work — some items are clearly bugs, some are changes, some are ideas, and some sit in awkward gaps (or need finer labels). ReqRep should offer a wider array of ticket kinds for filing, not only bug / idea / change.\n\nDiscussion first: what kinds to add, how they show in refs (BAY-###-KIND##), and how lanes/prep treat them. No fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Normal",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_acd3ab76",
+          "ticket_kind": "BUG",
+          "ticket_seq": 9,
+          "ref": "BAY-001-BUG09",
+          "body": "Title bar (and/or chrome) still shows the old SKU from before the port-SLUG rename.\n\nCurrent catalog/chip should be 42962-REQREP; UI still surfaces the previous code (e.g. CO.BBC-002-RR in health/title chrome).\n\nExpected: title bar / product chrome use the live SKU. Actual: stale pre-rename SKU. Silly but visible. No fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Low",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_015a5509",
+          "ticket_kind": "CHG",
+          "ticket_seq": 10,
+          "ref": "BAY-001-CHG10",
+          "body": "Clean up light-mode CSS.\n\nHands wants a pass to tidy ReqRep light-mode styles (consistency, leftovers, readability). Desire filed; concrete punch list TBD in discussion. No fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Low",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_df8927e6",
+          "ticket_kind": "BUG",
+          "ticket_seq": 11,
+          "ref": "BAY-001-BUG11",
+          "body": "In Epiphany on Linux, dropdown menus have no usable styling under the dark-mode stylesheet: white text on white background.\n\nExpected: selects/menus readable in dark mode on Epiphany (Rosewood/Linux).\nActual: unstyled native/dropdown chrome — white-on-white.\n\nRepro: open ReqRep in Epiphany with dark mode; open any dropdown. No fix in this filing.",
+          "work_lane": "run",
+          "priority": "Urgent",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_acd9c270",
+          "ticket_kind": "CHG",
+          "ticket_seq": 12,
+          "ref": "BAY-001-CHG12",
+          "body": "Add a \"filed\" work lane (or equivalent setting) as the default resting state for new tickets — not discussion.\n\nToday new tickets land in discussion (agent should reply / talk). Hands wants a first state that means: filed, nothing happening on it yet. Discussion would be an intentional step after that.\n\nCurrent lanes include discussion|paused|run|test|closed — none are \"just filed.\" paused is hold-after; filed would be intake parking.\n\nDesired: new chunks default to filed; move to discussion when Hands wants talk. No fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Normal",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        },
+        {
+          "id": "chk_738a8fa6",
+          "ticket_kind": "CHG",
+          "ticket_seq": 13,
+          "ref": "BAY-001-CHG13",
+          "body": "Live refresh for Hands side when new tickets/bays appear.\n\nWhile aubel files from chat, Hands watching ReqRep on the LAN has to reload manually to see new work. Want either:\n- an explicit Refresh control, and/or\n- an auto listener / poll that refreshes on an interval so the desk stays current.\n\nGoal: Hands side updates with new tickets and related changes without a full manual reload ritual. No fix in this filing.",
+          "work_lane": "discussion",
+          "priority": "Normal",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        }
+      ],
+      "scope": {
+        "body": "Ship a request list and case desk: discussion blocks with refs, Hands AGREED seals, scope lock, Product prep generate and Hands sign-off. Big Box look, local store, Deck Host launch.",
+        "locked": false,
+        "locked_at": null
+      },
+      "prep": {
+        "body": "",
+        "signed": false,
+        "signed_at": null,
+        "signed_by": null
+      }
+    }
+  ],
+  "updated": 1789927405
+}

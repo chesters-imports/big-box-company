@@ -14,8 +14,7 @@ Thumbs.db
 venv/
 
 # Operator mats / papers — local only for now (Hands will un-ignore later)
-safe_box/
-**/safe_box/
+great-road-mapper/prod/safe_box/
 paper/
 **/paper/
 

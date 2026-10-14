@@ -1,0 +1,2323 @@
+{
+  "version": 1,
+  "product": "reqrep",
+  "chip": "CO.BBC-002-RR",
+  "seq": 8,
+  "cases": [
+    {
+      "id": "case_ba157a0c",
+      "req_code": "REQ-008",
+      "req_type": "MOD",
+      "sku": "CO.BBC-001-GRM",
+      "product_name": "The Great Roadmapper",
+      "producer": "Big Box Co.",
+      "hands": "Daniel Wake",
+      "priority": "Normal",
+      "status": "discussing",
+      "created": 1785512524,
+      "updated": 1785512524,
+      "chunks": [],
+      "scope": {
+        "body": "",
+        "locked": false,
+        "locked_at": null
+      },
+      "prep": {
+        "body": "",
+        "signed": false,
+        "signed_at": null,
+        "signed_by": null
+      },
+      "title": "MOD: ROM SKU CO.BBC-001-GRM \"The Great Roadmapper\""
+    },
+    {
+      "id": "case_463878bf",
+      "req_code": "REQ-007",
+      "req_type": "MOD",
+      "sku": "DECK-HOST-LAUNCHER",
+      "product_name": "The Deck Host Launcher",
+      "producer": "Deck Host",
+      "hands": "Chester's Imports",
+      "priority": "Normal",
+      "status": "discussing",
+      "created": 1785462085,
+      "updated": 1785462866,
+      "chunks": [
+        {
+          "id": "chk_53d2ebb0",
+          "ticket_kind": "CHG",
+          "ticket_seq": 1,
+          "ref": "REQ-007-CHG01",
+          "body": "When you go \"deep\" on the rom deck host for this ROM, there is no handle to grab to move it around. Suggest making the \"ROM CASES\" word a handle for dragging.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785462842,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_6f9d3ec2",
+              "author": "agent",
+              "text": "RUN: h1 ROM CASES is data-deck-drag + grab cursor; deep mode glows handle. Relaunch Launcher, go deep, drag title. → TEST",
+              "created": 1785462527
+            },
+            {
+              "id": "cm_a1e8b837",
+              "author": "hands",
+              "text": "Confirmed.",
+              "created": 1785462838
+            }
+          ]
+        },
+        {
+          "id": "chk_e3589b6d",
+          "ticket_kind": "IDA",
+          "ticket_seq": 2,
+          "ref": "REQ-007-IDA02",
+          "body": "Julie / Classic boi case pick ups do not seem to be landing in the launcher side. REL [[REQ-005-CHG02]]",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785462866,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_92b67cb8",
+              "author": "agent",
+              "text": "RUN: merge_tiles already passes case_shell/julie_tint (Notebook julie purple verified in API). Strengthened launcher julie CSS (!important over hue-classic). Relaunch Launcher hard — pocket notebook should gem-glow. If still flat, hard-refresh CSS. → TEST",
+              "created": 1785462527
+            },
+            {
+              "id": "cm_65a42907",
+              "author": "hands",
+              "text": "Confirmed, JULIES arrived in the launcher.",
+              "created": 1785462860
+            }
+          ]
+        }
+      ],
+      "scope": {
+        "body": "",
+        "locked": false,
+        "locked_at": null
+      },
+      "prep": {
+        "body": "",
+        "signed": false,
+        "signed_at": null,
+        "signed_by": null
+      },
+      "title": "MOD: ROM SKU DECK-HOST-LAUNCHER \"The Deck Host Launcher\""
+    },
+    {
+      "id": "case_3394db49",
+      "req_code": "REQ-006",
+      "req_type": "MOD",
+      "sku": "CO.TOY-001-TERMINAL",
+      "product_name": "Terminal Network: DOSSIER DESK",
+      "producer": "Charlie's Toys",
+      "hands": "Chester's Imports, INC",
+      "priority": "Normal",
+      "status": "scope_locked",
+      "created": 1785455049,
+      "updated": 1785459449,
+      "chunks": [
+        {
+          "id": "chk_3f437892",
+          "ticket_kind": "CHG",
+          "ticket_seq": 1,
+          "ref": "REQ-006-CHG01",
+          "body": "ABX TERMINAL PORT REQUEST: migrate DOSSIER DESK into ABX TERMINAL RED inside of IMPORT STATION NETWORK.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785457829,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_faae1ecc",
+              "author": "agent",
+              "text": "RUN inspect: ABX is already red station in sdk-import-station (paper/ab, dossier whisper). Full DOSSIER DESK migrate is larger than a one-line port — need Hands path/source of current dossier desk (mausoleum tool?). Leaving on RUN until source desk is named, or move to DISCUSSION for port plan. No silent half-migrate.",
+              "created": 1785455717
+            },
+            {
+              "id": "cm_b9160894",
+              "author": "hands",
+              "text": "Current path of integrating the Terminals inside of the ROM network in ALICE_BOX has been strip mining the myPI and EDN versions and placing them inside what we have now. So, DossierDesk would need to be taken as the TOOL, without the alphabet network or any of the other files, and integrated into the current system Import Terminals are working inside of. \n\nLeft on Discussion until you feel confidant in the plan.",
+              "created": 1785456548
+            },
+            {
+              "id": "cm_6121706c",
+              "author": "agent",
+              "text": "DISCUSSION reply: heard. Port plan = strip-mine DossierDesk as TOOL only (no alphabet / no myPI shell), mount into sdk-import-station ABX like fileKeeper rooms — same pattern as current terminal network. When Hands names source path (or I excavate default myPI dossier door), flip this to RUN for implement. Confident enough on approach; waiting path/source freeze.",
+              "created": 1785456756
+            },
+            {
+              "id": "cm_f166c527",
+              "author": "hands",
+              "text": "Great. To complete certainty, this is the versioning of the tool we are porting: MAUSOLEUM BUILDS my-pocket-internet\\t\\tools\\dossierDesk",
+              "created": 1785457158
+            },
+            {
+              "id": "cm_a1b7a0df",
+              "author": "agent",
+              "text": "RUN shipped v0: dossierDesk strip-mined from mausoleum my-pocket-internet/t/tools/dossierDesk into sdk-import-station app/dossier (JSON bag work/dossier/ab.dossier.json — no myPI ledger). ABX nav DOSSIER room; person/faction/membership/notes + multi-leader soft-warn. Portrait/sigil media deferred. Relaunch Import Station, chip to ABX, open DOSSIER. Handoff → TEST.",
+              "created": 1785457393
+            },
+            {
+              "id": "cm_25a1808e",
+              "author": "hands",
+              "text": "TEST FAIL: The link seems to load the welcome page, not the dossier screen.",
+              "created": 1785457566
+            },
+            {
+              "id": "cm_559192c0",
+              "author": "agent",
+              "text": "TEST FAIL fix: sdk_href() had no case for room=dossier so every DOSSIER nav link rewrote to room=welcome. Added dossier (and aliases) to sdk_href match in config.php; health rooms list updated. Relaunch Import Station, ABX → DOSSIER should land on dossier desk. Handoff → TEST.",
+              "created": 1785457717
+            },
+            {
+              "id": "cm_e79809af",
+              "author": "hands",
+              "text": "Confirmed fixed. Implementation successful.",
+              "created": 1785457822
+            }
+          ]
+        },
+        {
+          "id": "chk_cf46eb10",
+          "ticket_kind": "BUG",
+          "ticket_seq": 2,
+          "ref": "REQ-006-BUG02",
+          "body": "Terminal launches on the ROM LAUNCHER non-quiet, shooting its own server. This can be problematic when server.py sticks, and I do not realize Terminal is still running and the main reload does not kill its server instance, keeping the stuck server online. Terminal should launch quiet from the bar like the other ROMs.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785458852,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_71145ba9",
+              "author": "agent",
+              "text": "RUN fix: (1) serve_rom.py PHP child now CREATE_NO_WINDOW so no console flash; (2) launches.json sdk-import port corrected 8765→43101 so unstick finds the real listener; (3) launcher orphan scan includes serve_rom.py + php -S under ALICE_BOX. Relaunch from ROM Launcher. → TEST",
+              "created": 1785458725
+            },
+            {
+              "id": "cm_2171cbde",
+              "author": "hands",
+              "text": "Confirmed fixed!",
+              "created": 1785458848
+            }
+          ]
+        },
+        {
+          "id": "chk_f08954e9",
+          "ticket_kind": "CHG",
+          "ticket_seq": 3,
+          "ref": "REQ-006-CHG03",
+          "body": "DOSSIER DESK: Add the ability to also chip the FACTION with \"morality\" setting, in addition to currently existing active status. Include: Adversary, Friendly, Unsure, Self-Run",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785459449,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_c10a394d",
+              "author": "agent",
+              "text": "RUN shipped: faction morality chip — adversary / friendly / unsure / self-run (list + new/edit forms). → TEST",
+              "created": 1785458725
+            },
+            {
+              "id": "cm_7b632b47",
+              "author": "hands",
+              "text": "Confirmed. Note: Now the chips overflow on length. Linebreak chips to their own line in the faction list for clear ordered display",
+              "created": 1785458840
+            },
+            {
+              "id": "cm_7b8f4657",
+              "author": "agent",
+              "text": "RUN: morality chips on own line under faction name (dd-chip-row flex-wrap). → TEST",
+              "created": 1785459202
+            },
+            {
+              "id": "cm_9a7c0d8d",
+              "author": "hands",
+              "text": "Confirmed!",
+              "created": 1785459445
+            }
+          ]
+        },
+        {
+          "id": "chk_ea0a7355",
+          "ticket_kind": "BUG",
+          "ticket_seq": 4,
+          "ref": "REQ-006-BUG04",
+          "body": "DOSSIER DESK: Remove room spray, not narrative, aubel never approves IE:\nABX · dossierDesk v0 · bag work/dossier/ab.dossier.json · person-first",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785458880,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_74086527",
+              "author": "agent",
+              "text": "RUN fix: removed ABX room spray line under dossier desk. → TEST",
+              "created": 1785458725
+            },
+            {
+              "id": "cm_4a833864",
+              "author": "hands",
+              "text": "confirmed - auel appreciates u",
+              "created": 1785458875
+            }
+          ]
+        },
+        {
+          "id": "chk_4b615214",
+          "ticket_kind": "CHG",
+          "ticket_seq": 5,
+          "ref": "REQ-006-CHG05",
+          "body": "Look of this Desk is very clunky. Is it possible to rework the desk design to work better with the Terminal glitch environment, while improving legibility? Currently it is 1:1 to the filekeeper, and it just is hard to work inside of.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785459436,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_914b93ac",
+              "author": "agent",
+              "text": "RUN shipped: dossierDesk.css reworked for ABX terminal (phosphor reds, mono labels, denser panels, not filekeeper clone). → TEST",
+              "created": 1785458725
+            },
+            {
+              "id": "cm_896a59c8",
+              "author": "hands",
+              "text": "Improved. Still very \"box in box in box\" design of previous fileKeeper. Consider 1 more pass to reduce boxed housing intensity and increase minor glitch sensation. NOTE: This environment (\"AB\") is a place where the narrative tracks being hunted, it is the most fragmented and some visuals should enhance that.",
+              "created": 1785458948
+            },
+            {
+              "id": "cm_d50efef4",
+              "author": "agent",
+              "text": "RUN visual pass 2: less box-in-box (no panel borders / open forms), fracture rail, scanline wash, hunted AB fragment feel. → TEST",
+              "created": 1785459202
+            },
+            {
+              "id": "cm_d28908e4",
+              "author": "hands",
+              "text": "Confirmed!",
+              "created": 1785459433
+            }
+          ]
+        }
+      ],
+      "scope": {
+        "body": "TOPIC THREAD FOR ANYTHING RELATED TO THE DOSSIER DESK ON TERMINAL IMPORT STATION AB",
+        "locked": true,
+        "locked_at": 1785459416
+      },
+      "prep": {
+        "body": "",
+        "signed": false,
+        "signed_at": null,
+        "signed_by": null
+      },
+      "title": "MOD: ROM SKU CO.TOY-001-TERMINAL \"Terminal Network: DOSSIER DESK\""
+    },
+    {
+      "id": "case_8b9b1479",
+      "req_code": "REQ-005",
+      "req_type": "MOD",
+      "sku": "CO.DCC-001-ROMCAT",
+      "product_name": "ROM Cat",
+      "producer": "Dewey Catalog Co.",
+      "hands": "Chip Dewey",
+      "priority": "Normal",
+      "status": "discussing",
+      "created": 1785454952,
+      "updated": 1785466908,
+      "chunks": [
+        {
+          "id": "chk_8d5ab2c2",
+          "ticket_kind": "CHG",
+          "ticket_seq": 1,
+          "ref": "REQ-005-CHG01",
+          "body": "Introduce a \"preview faceplate\" for the cover designer on the ROM Cat so Operator can check designs before shipping.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785456451,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_17027047",
+              "author": "agent",
+              "text": "RUN shipped: ROM form live Preview faceplate under plate CSS (cart mock + name + operator CSS). Relaunch ROM Cat. Handoff → TEST.",
+              "created": 1785455717
+            },
+            {
+              "id": "cm_31282a5c",
+              "author": "hands",
+              "text": "APPROVED!",
+              "created": 1785456449
+            }
+          ]
+        },
+        {
+          "id": "chk_18503f1f",
+          "ticket_kind": "CHG",
+          "ticket_seq": 2,
+          "ref": "REQ-005-CHG02",
+          "body": "ROM Cat julie case toggle addition:\n\n1. Case shell toggle — classicboi | julie (click-toggle, not buried in prose).\n2. If julie → case color control (tint: red, pink, purple, mint, clear… — CSS custom property on the translucent shell).\n3. Persist on the ROM card, e.g.\n   case_shell: \"classicboi\" | \"julie\"\n   julie_tint: \"#c00…\" | preset id\n4. ROM Launcher reads those fields when it paints carts (fallback: classicboi).\n\nPreview faceplate already there — julie/classicboi should show in the same preview so Operator sees the full toy before ship. (Show full ROM preview rather then just faceplate preview)",
+          "work_lane": "test",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_be902dfb",
+              "author": "agent",
+              "text": "RUN shipped: ROM Cat case shell toggle classicboi|julie; julie tint swatches red/pink/purple/mint/clear; persist case_shell + julie_tint; full cart preview (shell+plate+sku). Launcher merge_tiles + shell-julie CSS (mausoleum dressUp energy). Relaunch Cat + Launcher. → TEST",
+              "created": 1785461733
+            },
+            {
+              "id": "cm_3a0faf66",
+              "author": "hands",
+              "text": "Confirmed in ROM Cat. See ticket spawned to complete taskload: [[REQ-007-IDA02]]",
+              "created": 1785462302
+            },
+            {
+              "id": "cm_48c1eda9",
+              "author": "agent",
+              "text": "Confirmed Cat; launcher side tracked in REQ-007-IDA02. This CHG complete on Cat+preview. → TEST (or seal if Hands already happy).",
+              "created": 1785462527
+            },
+            {
+              "id": "cm_b6e26d1b",
+              "author": "hands",
+              "text": "Confirmed. Julie look is lacking some of the sense of see through and slightly washed out. Imagine the plastic of old pagers in the late 90s, there is something almost darkened and see through about those plastics. These colors look bright, dense, and almost too neon to feel like touchable things.",
+              "created": 1785462692
+            },
+            {
+              "id": "cm_269bea28",
+              "author": "agent",
+              "text": "RUN pass: julie plastics reworked late-90s pager style — darkened, washed, smoke overlay, low chroma (not neon). Cat preview + Launcher CSS. ROM Cat (not wrong cat). Relaunch both. → TEST",
+              "created": 1785463033
+            },
+            {
+              "id": "cm_9b8872c7",
+              "author": "hands",
+              "text": "Confirmed.",
+              "created": 1785463221
+            },
+            {
+              "id": "cm_b8ecabf8",
+              "author": "hands",
+              "text": "Redesign one more time - new version is now too dark and washed out, they seem less valuable then the classicBois. Improve the look to appear more like these objects, offer similar colors to the ones shown here: https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fwww.reddit.com%2Fr%2FRainbowEverything%2Fcomments%2F16t4my2%2Fi_keep_seeing_nostalgia_posts_about_translucent%2F&opi=89978449",
+              "created": 1785465596
+            },
+            {
+              "id": "cm_cd8e0137",
+              "author": "agent",
+              "text": "RUN (CHG02 julie pass) — translucent nostalgia plastics (clear GB / iMac candy energy):\n\n- Brighter jewel tints (strawberry/bubblegum/grape/ice mint/ice clear) with real see-through + white specular edge\n- Not mud-dark washed, not flat neon brick\n- Same shell language on ROM Cat preview AND ROM Launcher carts\n\nRelaunch Launcher + ROM Cat. Compare julie next to classicboi — julie should feel more valuable/translucent, not duller.",
+              "created": 1785465935
+            },
+            {
+              "id": "cm_1ee3bd80",
+              "author": "hands",
+              "text": "Confirmed. She's cute enough for now. Can you reduce the brightness of the bottom of the border on them? its so strong, it breaks the illusion of the raised edge. Where are these CSS files kept? I may hands on them directly after the next pass.",
+              "created": 1785466268
+            },
+            {
+              "id": "cm_d705bf4f",
+              "author": "agent",
+              "text": "RUN (CHG02 + cart craft pass):\n\nHARD PLASTIC (classicboi + julie): stacked 1px bevels (light TL / dark BR), hard 1–2px drop — no soft drop-shadow bloom.\n\nPIN PLANE: edge contacts flush to BOTTOM of shell (into the reader). SKU sits above pins. No more gap with a word under the chips.\n\nREADY: removed from cart face. Warm = green glowing pins only. Face text only for broken/soon.\n\nJULIE COLORS: presets can go intense (red #c01830, crimson #7a0018, blue, amber, smoke…). Plus custom color picker / #hex so Detective K can be whatever red you want. Not locked to pastel five.\n\nROM Cat scale: root 14.5px (was 12.5 — less ctrl+++).\n\nHands CSS paths (for direct tweak after):\n• Launcher carts: the-deck-host/rom-launcher/prod/launch_sys/app.css (+ app.js anatomy)\n• ROM Cat face + preview: dewey-catalog-co/rom-cat/prod/romcat_sys/app.css\n• julie form/hex: romcat_sys/app.js + index.html; persist rules in romcat_sys/server.py; launcher read in launch_sys/server.py\n\nRelaunch Launcher + ROM Cat.",
+              "created": 1785466908
+            }
+          ]
+        },
+        {
+          "id": "chk_4a9fcc20",
+          "ticket_kind": "IDA",
+          "ticket_seq": 3,
+          "ref": "REQ-005-IDA03",
+          "body": "Consider a facelift. This product face is not entirely aligned with its usage, and will continue to become challenging. Suggest discussion of topic. ROM cat is like a sense of a toy store catalog. How can we provide more sense of toy store / comic book shop / game shop rather then interesting \"paper cards\" motif currently employed? If desired, apply facelift only with CSS and offer multiple \"themes\" to be worn, so we do not lose current look of the ROM Cat.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785466304,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_da8a7ebd",
+              "author": "agent",
+              "text": "DISCUSSION reply (facelift):\n\nAgreed direction: ROM Cat should feel toy store / comic shop / game shop more than library card catalog.\n\nCSS-only facelift path is right for first pass:\n- Shelf as wall of product boxes (not index cards)\n- Stronger cartridge / julie / classicboi language already starting via CHG02\n- Optional themes later: toy-store · comic-rack · glass-case (CSS class on body.rc)\n\nWould not invent a new data model for themes — body.rc.theme-X skins. Hands pick primary metaphor (I lean game shop shelf + gem/cart product shots). Flip to RUN when you want a first theme shipped.",
+              "created": 1785461733
+            },
+            {
+              "id": "cm_ecfca886",
+              "author": "hands",
+              "text": "Yes. Approved. Game shelf / game store look.",
+              "created": 1785462336
+            },
+            {
+              "id": "cm_dd85105c",
+              "author": "agent",
+              "text": "RUN shipped: body.rc.theme-gameshelf default — game store shelf (dark wood, product boxes, gold accents). Paper-card tokens remain in :root for optional theme restore later. Relaunch ROM Cat. → TEST",
+              "created": 1785462527
+            },
+            {
+              "id": "cm_5ad2523c",
+              "author": "hands",
+              "text": "Facelift is an improvement. ROM word in the header bar is no longer legible, consider making WHITE. Redesign the ROM product page so ROMs list in the same cute way as the PRODUCERS on the page before them, rather than in rows.",
+              "created": 1785462817
+            },
+            {
+              "id": "cm_8583217a",
+              "author": "agent",
+              "text": "RUN pass: ROM word white on gameshelf header; producer ROM list uses same cute product-shelf cards as producers (not row bins). Relaunch ROM Cat. → TEST",
+              "created": 1785463033
+            },
+            {
+              "id": "cm_6d6575f7",
+              "author": "hands",
+              "text": "Improved. A few small notes:\n- chip for DESK, IDEA, etc, not redesigned to fit new dark look, please rework\n- heights of the current roms on the shelf change based on content. force them to all be the same consistent scaled block.\n- change look of the roms of the shelf divs to help them look unique compared to the producer tiles and the producer card.\n- add the actual rom display on the card, shrink the other text on the card to make room for the display without increasing the size of the card too dramatically.",
+              "created": 1785463391
+            },
+            {
+              "id": "cm_3284df7f",
+              "author": "agent",
+              "text": "RUN (IDA03 facelift pass 3) — game shop density, not twin gradient cards:\n\n• ROM stock: fixed-height product blocks (12.4rem) with real cart face (classicboi/julie + plate_css + ROM badge/SKU), blister peg, pegboard wall\n• Status chips reworked for dark shelf: DESK / SHIPPED / IDEA / MAUSOLEUM / BROKEN as shop stamps\n• ROMs distinct from producers: carts vs company plaques (screws, tab, count pip)\n• Open producer: bay plaque with brass corners + PRODUCER BAY stamp (not index-card twin of stock)\n• Show/hide launcher preserves case_shell / julie_tint / plate_css\n• Text on ROM cards shrunk; cart is the hero\n\nRelaunch ROM Cat (hard refresh). Hands QA → seal or nits.",
+              "created": 1785464910
+            },
+            {
+              "id": "cm_942e3043",
+              "author": "hands",
+              "text": "Improved. Some thoughts: \nThe whole app feels oversized and zoomed in. Like, it is launching in the 1024 scale when it would be better at 800x600 scale launch with everything scaled down proportionately to the new window (zoomed out, not re-grid with same scale)\n\nMain screen is good. Producer page is hard to read. Card for the produer is HUGE while only containing a very small amount of data, and cards and their edit zone is small, making the previews of the actual rom displays difficult to enjoy.\n\nCannot see the close and other buttons on the header rail\n\nThis section: \"the catalog that files the makers · and the makers' ROMs · 11 producers · 27 ROM cards\" could be designed more distinctly as a fancy rail that always shows up at the top while you're moving around the ROM Cat.",
+              "created": 1785465506
+            },
+            {
+              "id": "cm_5be967ae",
+              "author": "agent",
+              "text": "RUN (IDA03 pass 4) — killed the identity crisis:\n\nIDENTITY: toy-aisle catalog (soft cream/lilac, candy tabs) — NOT brown-gold tabletop, NOT industrial screws/pegboard mesh.\n\nScale: launches 800x600 (run-in-deck-host --width/height); root type ~12.5px so UI zooms out together.\n\nLayout:\n- Always-on CATALOG rail (whisper + producer/ROM counts) under chrome\n- Chrome bar shorter; win controls get reserved min-width so close/min/max stay visible\n- Producer open = compact bay strip (name/chip/one-liner + edit) — not a giant empty card\n- ROM stock tray is the hero; fixed-height product blocks still, soft hang-tab not bolts\n- ROM edit dialog: fields + live case preview side-by-side\n\nRelaunch ROM Cat (from Launcher). Glass QA.",
+              "created": 1785465935
+            },
+            {
+              "id": "cm_ea6783a4",
+              "author": "hands",
+              "text": "CONFIRMED BEYOND CUTE. THANK YOU. Closing ticket.",
+              "created": 1785466301
+            }
+          ]
+        }
+      ],
+      "scope": {
+        "body": "",
+        "locked": false,
+        "locked_at": null
+      },
+      "prep": {
+        "body": "",
+        "signed": false,
+        "signed_at": null,
+        "signed_by": null
+      },
+      "title": "MOD: ROM SKU CO.DCC-001-ROMCAT \"ROM Cat\""
+    },
+    {
+      "id": "case_e484f16f",
+      "req_code": "REQ-004",
+      "req_type": "MOD",
+      "sku": "CO.MYPT-002-NOTES",
+      "product_name": "My Pocket Notebook",
+      "producer": "My Pocket Things",
+      "hands": "Charlie",
+      "priority": "Urgent",
+      "status": "discussing",
+      "created": 1785446316,
+      "updated": 1785459751,
+      "chunks": [
+        {
+          "id": "chk_26e771e3",
+          "ticket_kind": "BUG",
+          "ticket_seq": 1,
+          "ref": "REQ-004-BUG01",
+          "body": "When you book is open, the table of contents has a 1.......... lead line with the dots added. This looks \"cute\" but its too long, making the titles cramped",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785455112,
+          "closed_by": "hands",
+          "close_note": "CONFIRMED",
+          "comments": [
+            {
+              "id": "cm_c7f3a7b6",
+              "author": "agent",
+              "text": "RUN/TEST shipped: TOC leader dots capped (grid dots column max ~1.35rem; title takes fr). Should free title space. Relaunch Notebook if CSS cached.",
+              "created": 1785447413
+            },
+            {
+              "id": "cm_3075f0f0",
+              "author": "hands",
+              "text": "Still too much. Lets remove and just put a natural gap.",
+              "created": 1785447561
+            },
+            {
+              "id": "cm_7f4ea528",
+              "author": "agent",
+              "text": "RUN follow-up: TOC leader dots removed entirely; mark + number + title with natural gap only. Move to TEST when glass looks right.",
+              "created": 1785453303
+            },
+            {
+              "id": "cm_e23dae42",
+              "author": "agent",
+              "text": "Lane handoff: agent implement done → TEST (Hands QA bag). Law: RUN/IN = agent · DISCUSSION = shared · TEST = Hands.",
+              "created": 1785453469
+            }
+          ]
+        },
+        {
+          "id": "chk_490ce71f",
+          "ticket_kind": "CHG",
+          "ticket_seq": 2,
+          "ref": "REQ-004-CHG02",
+          "body": "FROM PREVIOUS REQUEST: Add the ability to open and close a \"last opened\" notebook pane while in a notebook. HOLDING FOR DISCUSSION / LATER IMPLEMENTATION",
+          "work_lane": "paused",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": [
+            {
+              "id": "cm_b50f04fa",
+              "author": "agent",
+              "text": "AGENT FEEDBACK — last-opened pane in-notebook (HOLD):\n\nStill DISCUSSION / later. This is the ticket that *shows why* REQ-001-IDA24 (Paused lane) exists: we need a rail state for \"we know this is real, we are not debating it this week, do not action, do not lose it in the active discussion fog.\"\n\nToday: work_lane=discussion mixes (a) actively debating now, (b) parked for later. Agents correctly refuse implement on discussion, but Hands scanning open DISCUSSION gets cognitive mud.\n\nProposal until Paused ships:\n- Keep CHG02 on discussion OR move to Paused when IDA24 lands.\n- Body already says HOLDING — good. Cross-link: see REQ-001-IDA24.\n\nNot implementing CHG02 this pass. Feasibility later: local UI state + library memory of last book ids; no hard block.",
+              "created": 1785447045
+            }
+          ]
+        },
+        {
+          "id": "chk_02936324",
+          "ticket_kind": "CHG",
+          "ticket_seq": 3,
+          "ref": "REQ-004-CHG03",
+          "body": "Size of the HOST DECK for this application does not suit its shape. Consider making more narrow by default. Do not change height. When clicking to expand the window open, expand mostly height. Wider text is harder to read, typically here \"more space\" means \"more height\". DISCUSS SIZING BEFORE IMPLEMENT.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785455846,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_555934f0",
+              "author": "agent",
+              "text": "AGENT FEEDBACK (discuss, not shipping):\n\nCurrent Deck default is 980x700 (NOTES_WIDTH/HEIGHT in run-in-deck-host.py). That is landscape-wide for a *book* — TOC + page + gutter fight for horizontal real estate; titles already feel the squeeze (see BUG01 dots).\n\nMy pick for first sizing trial (when RUN/TEST):\n- Default: **720 x 700** (keep height; cut ~260px width). Alternate if still wide: **680 x 720**.\n- Rationale: notebook is a tall reading column + optional TOC; 720 leaves room for cloth cover metaphor without newspaper-column width. Body text comfort > showcase width.\n- Maximize / expand: prefer **height growth first** (your law). Ideal Deck behavior: expand mostly vertical; only widen if Hands drag says so. If Deck Host only scales proportionally today, note as host limitation — Notebook can still *request* narrower default so first open feels right.\n- Do not change height baseline until we try 720x700 in glass.\n- Open question for Hands: keep 700 height or allow default 720–740 height with 680–720 width for more page without wider lines?\n\nStamp when you agree numbers; move to RUN/TEST to ship defaults.",
+              "created": 1785447045
+            },
+            {
+              "id": "cm_397fd9d6",
+              "author": "hands",
+              "text": "allow default 720–740 height with 680–720 width approved - prefer tight and neat rather then needless width",
+              "created": 1785447262
+            },
+            {
+              "id": "cm_7663902a",
+              "author": "agent",
+              "text": "RUN/TEST shipped: Deck default 720x700 (was 980x700) via run-in-deck-host.py. Override NOTES_WIDTH / NOTES_HEIGHT still work. Expand-height-first is Deck Host behavior — default shape is the Notebook-side fix. Relaunch from Deck/Cat to feel it.",
+              "created": 1785447413
+            },
+            {
+              "id": "cm_49a19d8b",
+              "author": "hands",
+              "text": "Confirmed default is nice. EXPANDED version however opens to 1080x or somewhere, not just \"longer of current size\" as requested. Also, can page width display be made slightly wider? Not to fill the space, but just to have less gap on either side in this scale. (space between edge of screen and toc is small, space between toc and page and page and edge is larger. Reduce spaces between toc and page and page and edge by 50%)",
+              "created": 1785447707
+            },
+            {
+              "id": "cm_555beb37",
+              "author": "agent",
+              "text": "RUN follow-up: Deck expand height-first for custom standard sizes (720x700 -> expanded ~760x920 via NOTES/DECK_HOST_EXPANDED_*). deck_host.py no longer jumps notebook to 1600x1200 when mag-expand. Page paper slightly wider (32rem/78vw). Relaunch from Deck to pick up host change.",
+              "created": 1785453303
+            },
+            {
+              "id": "cm_c67f8554",
+              "author": "agent",
+              "text": "Lane handoff: agent implement done → TEST (Hands QA bag). Law: RUN/IN = agent · DISCUSSION = shared · TEST = Hands.",
+              "created": 1785453469
+            },
+            {
+              "id": "cm_3fc8301c",
+              "author": "hands",
+              "text": "Partly confirmed. New size is nice, but interior of the design does not adapt to the rescale, paper just moves to center of the length but nothing else changes. The page and toc should grow to fit the new length,",
+              "created": 1785455284
+            },
+            {
+              "id": "cm_4eecac86",
+              "author": "agent",
+              "text": "RUN re-ship: open-book page + TOC stretch with cover well (no fixed 36rem cap); paper grows on expand. Handoff → TEST.",
+              "created": 1785455717
+            },
+            {
+              "id": "cm_3ec36ca6",
+              "author": "hands",
+              "text": "SO CUTE!",
+              "created": 1785455842
+            }
+          ]
+        },
+        {
+          "id": "chk_fdc4ce49",
+          "ticket_kind": "IDA",
+          "ticket_seq": 4,
+          "ref": "REQ-004-IDA04",
+          "body": "On the launch screen, what if we showed the last 3-5 opened notebooks large, even larger then we have them now, and then below we have a shelf with the whole library shown, but only as the binding with the label, not the front of the book. So top of the screen is \"last opened notebooks\" and bottom is shelf with all books side by side. Click a book - it opens. DISCUSS BEFORE IMPLEMENT.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785455860,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_555ce1a2",
+              "author": "agent",
+              "text": "AGENT FEEDBACK — launch / load screen (feasibility before implement):\n\nConcept: TOP = last 3–5 opened, LARGE; BOTTOM = full library as **spine/bindings only** (label edge-on), click opens. Discuss only.\n\nFeasibility: **Yes**, without new backend if library.json already has order + open history. Need (or add):\n- lastOpened[] or lastOpenedAt per book (3–5) — if missing, synthesize from mtime/order as interim.\n- Two-zone shelf layout in app.js (recents strip + spine rail). CSS-heavy, not architecture-heavy.\n\nRisks / design calls before RUN/TEST:\n1. **Spine readability** — real spines are narrow; labels need rotation or short edge-title + hover full name. Feasible; needs mock in glass.\n2. **Empty library / one book** — recents zone collapses or duplicates; define empty states.\n3. **vs CHG02** — CHG02 is *in-book* last-opened *pane*; IDA04 is *launch shelf* recents. Related UX language, different surfaces. Do not block IDA04 on CHG02.\n4. **Effort** — 1 focused slice after BUG01 + sizing, not a rewrite. ROM stay cloth-book, not generic grid.\n5. **Deck size** — large recents + spine shelf wants height (supports CHG03 height-first expand). Wide 980 hurts this layout.\n\nRecommendation: freeze wireframe (recents count 4 default, spines horizontal row with scroll if many) in discussion, then RUN/TEST after BUG01. I would not start IDA04 until TOC BUG01 is green — same open-book chrome family.",
+              "created": 1785447045
+            },
+            {
+              "id": "cm_70f0d36e",
+              "author": "hands",
+              "text": "1. Yup, understood the limit, willing to try\n2. Thats fine, the library will fill up. its okay if its duped in both spots the same 3 books right now\n3. correct\n4. Yes - DO NOT ALTER LOOKBOOK, only enhance the feeling of immersive tiny book studio - there is felt and wood and tiny lamps and many important journals here\n5. OK agreed on operation order",
+              "created": 1785447197
+            },
+            {
+              "id": "cm_467856db",
+              "author": "agent",
+              "text": "RUN/TEST shipped: launch = Last opened (up to 4 large covers, filled from lastOpened then library order) + Library spines rail (binding + rotated label, click to open). openBook writes lib.lastOpened (cap 8). Gear still on recents and spines. Relaunch Notebook to see shelf.",
+              "created": 1785447413
+            },
+            {
+              "id": "cm_43dd37fe",
+              "author": "hands",
+              "text": "Size of covers only gives good room for 3. Limit zoomed covers to 3 only and reduce the size of the + button to fit, or move + button to lower shelf area. The shelf area does not have the same sense of \"white labels\" as the covers do, making the edges harder to read. Additionally, no sense of shelf that they are sitting on was installed, so some narrative cuteness has gone missing in the plan.",
+              "created": 1785447786
+            },
+            {
+              "id": "cm_ade606a6",
+              "author": "agent",
+              "text": "RUN follow-up: last opened capped at 3 large covers; + NEW moved to spine shelf as tall slim control; spine rail gets more height. Relaunch Notebook.",
+              "created": 1785453303
+            },
+            {
+              "id": "cm_64f8f92a",
+              "author": "agent",
+              "text": "Lane handoff: agent implement done → TEST (Hands QA bag). Law: RUN/IN = agent · DISCUSSION = shared · TEST = Hands.",
+              "created": 1785453469
+            },
+            {
+              "id": "cm_2c62c273",
+              "author": "hands",
+              "text": "Partly confirmed. No redesign applied on SHELF - there should be some fake design of a shelf for the books to sit on / inside of. Label of books when showing spine should be more designed for legibility - smaller font, all caps, clearly defined container and text which stands out nicely against the chosen cover color. See the styling of the front-faces of the books - something more designed like this for the sides please.",
+              "created": 1785455234
+            },
+            {
+              "id": "cm_cdde7ed9",
+              "author": "agent",
+              "text": "RUN re-ship: wood shelf bay + lip under spines; recents plinth; spine labels mono ALL CAPS nameplate style. Handoff → TEST.",
+              "created": 1785455717
+            },
+            {
+              "id": "cm_b9256b3c",
+              "author": "hands",
+              "text": "SO CUTE!",
+              "created": 1785455857
+            }
+          ]
+        },
+        {
+          "id": "chk_849a99d4",
+          "ticket_kind": "CHG",
+          "ticket_seq": 5,
+          "ref": "REQ-004-CHG05",
+          "body": "When inside of my book, there are 2 headers functioning basically the same way -- suggest removing first header and only leading the <- Shelf button here or removing whole section and placing <- shelf button somewhere less overt so the journal box div can get to the top of the screen. Best location may be same side (left) but at the bottom next to the page scrubber.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785455130,
+          "closed_by": "hands",
+          "close_note": "CONFIRMED",
+          "comments": [
+            {
+              "id": "cm_49e432fc",
+              "author": "agent",
+              "text": "RUN shipped: removed dual open-head (title bar + cover band). Cover band keeps title + TOC + gear; <- SHELF sits left of page scrubber at bottom. Journal cover reaches higher.",
+              "created": 1785453303
+            },
+            {
+              "id": "cm_a9bde2b7",
+              "author": "agent",
+              "text": "Lane handoff: agent implement done → TEST (Hands QA bag). Law: RUN/IN = agent · DISCUSSION = shared · TEST = Hands.",
+              "created": 1785453469
+            },
+            {
+              "id": "cm_8390ed0c",
+              "author": "hands",
+              "text": "CONFIRMED",
+              "created": 1785455124
+            }
+          ]
+        }
+      ],
+      "scope": {
+        "body": "",
+        "locked": false,
+        "locked_at": null
+      },
+      "prep": {
+        "body": "",
+        "signed": false,
+        "signed_at": null,
+        "signed_by": null
+      },
+      "title": "MOD: ROM SKU CO.MYPT-002-NOTES \"My Pocket Notebook\""
+    },
+    {
+      "id": "case_0caafd98",
+      "req_code": "REQ-003",
+      "req_type": "REQ",
+      "sku": "CO.TOY-004-EEE",
+      "product_name": "Eddy's Encoder Envelope",
+      "producer": "Charlie's Toys",
+      "hands": "CHARLIE GONE WILD",
+      "priority": "Normal",
+      "status": "discussing",
+      "created": 1785432099,
+      "updated": 1785457010,
+      "chunks": [
+        {
+          "id": "chk_8487f4f7",
+          "ticket_kind": "IDA",
+          "ticket_seq": 1,
+          "ref": "REQ-003-IDA01",
+          "body": "OPENING DISCUSSION - FILL TICKETS AS DISCUSSION FRUITS",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785434855,
+          "closed_by": "hands",
+          "close_note": "TICKETS NOW IN FULL DISCUSSION",
+          "comments": [
+            {
+              "id": "cm_1db09130",
+              "author": "hands",
+              "text": "OPENING DISCUSSION: \nWe must create an envelope encoder for transcribing names in a chat log into sanitized renames. This will NOT be an auto-batch process, user will manually add creatures into the bag with the required data.\n\nMAUSOLEUM BITS WORTH VIEWING:\nC:\\Builds\\__PRE-AGENT-REPOS-kitten-lab\\alef-bet\\__proto-platform\\platformBK\\z\\kven-registry-structure.md\nC:\\Builds\\chesters-toy-box\\apps\\chesters-minter\nC:\\Builds\\chesters-toy-box\\apps\\ven-registrar\nC:\\Builds\\chesters-toy-box\\apps\\dollmaster\nC:\\Builds\\endless-door-network\\Terminal\\IO\\ (redaction lexicon)\nC:\\Builds\\my-pocket-internet\\t\\tools\\venDesk\nC:\\Builds\\ven-minter\nC:\\Builds\\miwbs (attempt to produce ven system)\n\nTOPICAL POTENTIALLY:\nC:\\ALICE_BOX\\!q-and-alice-only\\histories\\headspace-2026-07-29-bay2-nim-eden-pocket.md",
+              "created": 1785432680
+            },
+            {
+              "id": "cm_479eb67a",
+              "author": "agent",
+              "text": "Waypoint read (agent). Opening discussion = map of prior approaches, not a build order yet.\n\nWHAT EDDY IS (from purpose + this IDA):\n- Manual envelope encoder: human adds creatures one at a time with required fields.\n- NOT auto-batch over chat logs (anti-fragmentation / no auto-chip every name).\n- Mints KVEN so the karaoke-Kevin joke has a machine (EEE / CO.TOY-004-EEE).\n\nCANON SHAPE (kven-registry-structure.md still good bones):\n- kven: LLL-DDD (3 letters + dash + 3 digits)\n- alts: in-world discuss names\n- label: true/guarded name (discreet, recognizable to Hands)\n- matches: log surface forms for later I/O recognition\n- notes, type (person/object/event/…)\n- later forester-clean drops variants, keeps label\n\nMAUSOLEUM LINEAGE (you listed — agent glanced):\n- chesters-minter: dirty animate mint, LLL+DDD + sigil toys\n- ven-registrar: registry JSON + minter\n- ven-minter/Mentor: bigger VEN workshop (types/shells/export) — too fat for Eddy v0\n- dollmaster: maker drawer twin of deckmaker — objects later, not this job\n- IO redaction lexicon / venDesk / miwbs: I/O and world attempts around VEN, not the thin toy\n\nNim headspace: parent chips before forest — Eddy feeds that; does not replace Nim.\n\nSUGGESTED FRUIT TICKETS (you open/seal; DISCUSSION until RUN/TEST):\n1. IDA — Field law freeze (registry fields + LLL-DDD rules; which letters pool)\n2. IDA — Manual add flow (form: label, alts, matches, type, notes → mint KVEN)\n3. IDA — Bag store path (local JSON under charlies-toys/eddies-encoder or envelope .json)\n4. IDA — List/search/copy KVEN (no auto-scan of glass)\n5. IDA — Out of scope wall (no batch logs, no Core vault, no world-sim graph)\n6. CHG later — optional match-assist from paste (still human confirms mint)\n\nv0 = Chester dirt + registry structure, not Mentor/miwbs.\n\nReply here or open fruits; implement only on RUN/TEST.",
+              "created": 1785432771
+            },
+            {
+              "id": "cm_674119ef",
+              "author": "hands",
+              "text": "GREAT review. So, OPERATOR enjoyed the fun of randomizing a KVEN, as seen in the encoder where it just generated a KVEN. I would like to be able to generate a KVEN like a strange little machine pull, and choose to pull again or use it (or enter my own). The struts of the KVEN md file with the outline is perfectly what I need. User will need to be able to add / edit / search / link entries. Ideally, link should let the user name how they are linked, and store the link types as a progressively growing pre-fill for future use.",
+              "created": 1785433579
+            },
+            {
+              "id": "cm_8ba75817",
+              "author": "hands",
+              "text": "APPROVAL: Create the best start discussion branches into new TICKETS, and I will comment accordingly to refine them down.\n\nNOTE EXTRA: Please make strange and cute. Prefer app looks like JACK'S CONCOR and POCKET NOTEBOOK and KDE NOTES & CHORDS where every portion of the tool is toy-a-fied and feels integrated and game-like in some way.",
+              "created": 1785433687
+            },
+            {
+              "id": "cm_121b27bd",
+              "author": "agent",
+              "text": "Fruited six DISCUSSION tickets from your approval: FIELD LAW, STRANGE PULL, BAG CRUD, LINKS, LOOK, OUT OF SCOPE. All discussion until you flip lanes. CHG22/23 on REQ-001 shipped in parallel (font + comment hue).",
+              "created": 1785433835
+            },
+            {
+              "id": "cm_6d131559",
+              "author": "agent",
+              "text": "Compaction ritual: leave-off at !q-and-alice-only/histories/where-left-off-2026-07-30-compaction.md · workblock-wrap-2026-07-30-reqrep-eddie-glass.md. Eddy v0 live; Hands may stamp RUN tickets when glass is enough.",
+              "created": 1785437287
+            }
+          ]
+        },
+        {
+          "id": "chk_106f3189",
+          "ticket_kind": "IDA",
+          "ticket_seq": 2,
+          "ref": "REQ-003-IDA02",
+          "body": "FIELD LAW (discussion fruit)\nCanon from kven-registry-structure.md:\n- kven: MUST be 3 LETTERS + dash + 3 DIGITS (LLL-DDD)\n- alts: in-world discuss names\n- label: true/guarded name (discreet, Hands-recognizable)\n- matches: log surface spellings for later I/O\n- notes: forester-facing comments\n- type: person / object / event / ? (open)\n- created: timestamp\n\nOPEN: letter pool for random mint (Chester ANI list vs full A-Z)? Digit always 0-9.\nLater: forester-clean drops variants, keeps label.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785455327,
+          "closed_by": "hands",
+          "close_note": "LAUNCHED",
+          "comments": [
+            {
+              "id": "cm_e5a626ac",
+              "author": "agent",
+              "text": "Fruit branched from IDA01 Hands APPROVAL. Refine in-thread; RUN/TEST only when ready to build that slice.",
+              "created": 1785433835
+            },
+            {
+              "id": "cm_e9cf7710",
+              "author": "hands",
+              "text": "Agreed. Set to run",
+              "created": 1785434196
+            },
+            {
+              "id": "cm_86201656",
+              "author": "agent",
+              "text": "Hands: RUN/TEST parked — no implement until IDA04 (and any merge with IDA08) discussion settles.",
+              "created": 1785434514
+            },
+            {
+              "id": "cm_4dbc1f89",
+              "author": "agent",
+              "text": "v0 SHIPPED in charlies-toys/eddies-encoder · Deck Host run-eddie.bat · Cat + launcher registered. Links file: eddylinks.teehee. Stamp when glass feels right.",
+              "created": 1785435385
+            }
+          ]
+        },
+        {
+          "id": "chk_2fa237e2",
+          "ticket_kind": "IDA",
+          "ticket_seq": 3,
+          "ref": "REQ-003-IDA03",
+          "body": "STRANGE PULL (discussion fruit)\nOperator loved Chester minter randomize energy.\nv0 flow:\n1. Pull generates a candidate KVEN (animate/cute optional)\n2. Pull again / Use this / Type my own\n3. Only then bind to entry fields and save\n\nNot auto-batch. Human still commits the creature.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785457010,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_77bc71ce",
+              "author": "agent",
+              "text": "Fruit branched from IDA01 Hands APPROVAL. Refine in-thread; RUN/TEST only when ready to build that slice.",
+              "created": 1785433835
+            },
+            {
+              "id": "cm_7b04a2d2",
+              "author": "hands",
+              "text": "APPROVED, set to run.",
+              "created": 1785434222
+            },
+            {
+              "id": "cm_8cb0c935",
+              "author": "agent",
+              "text": "Hands: RUN/TEST parked — no implement until IDA04 (and any merge with IDA08) discussion settles.",
+              "created": 1785434514
+            },
+            {
+              "id": "cm_ce272c5b",
+              "author": "agent",
+              "text": "v0 SHIPPED in charlies-toys/eddies-encoder · Deck Host run-eddie.bat · Cat + launcher registered. Links file: eddylinks.teehee. Stamp when glass feels right.",
+              "created": 1785435385
+            },
+            {
+              "id": "cm_6051b406",
+              "author": "hands",
+              "text": "PARTLY CONFIRMED. It would be fun if the generator screen had more chaotic / glitch appearance to each roll.",
+              "created": 1785455351
+            },
+            {
+              "id": "cm_8c07f9ab",
+              "author": "agent",
+              "text": "RUN re-ship: PULL face glitch scramble + slot glitch chrome before KVEN lands. Relaunch Eddie. Handoff → TEST.",
+              "created": 1785455717
+            },
+            {
+              "id": "cm_33825eb4",
+              "author": "hands",
+              "text": "SO FUCKING CUTE!!",
+              "created": 1785457006
+            }
+          ]
+        },
+        {
+          "id": "chk_87fa3e03",
+          "ticket_kind": "IDA",
+          "ticket_seq": 4,
+          "ref": "REQ-003-IDA04",
+          "body": "BAG CRUD (discussion fruit)\nLocal bag under charlies-toys (eddies-encoder or envelope json).\nUser can: add entry, edit entry, search (label/alts/matches/kven), list recent.\nNo glass auto-scan.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785455379,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_69e97ee2",
+              "author": "agent",
+              "text": "Fruit branched from IDA01 Hands APPROVAL. Refine in-thread; RUN/TEST only when ready to build that slice.",
+              "created": 1785433835
+            },
+            {
+              "id": "cm_3956a563",
+              "author": "hands",
+              "text": "CONSIDER discussions about importance of file structure. If you use json, change file suffix to house file type .teehee\nJSON or simple SQLITE file is fine. Please reveal intended structure for json or db layout before production. Naming is important.",
+              "created": 1785434339
+            },
+            {
+              "id": "cm_2e3632f1",
+              "author": "agent",
+              "text": "STRUCTURE PROPOSAL (agent) — discuss before RUN/TEST; not built yet.\n\nPATH (Charlie toys):\n  charlies-toys/eddies-encoder/\n    prod/\n      box_sys/     # glass if Deck Host\n      safe_box/    # operator bag lives here\n        eddie.teehee   # house suffix; JSON body under the hood\n\nWHY .teehee not .json face:\n  House filetype law — like .lorebox / .shotbox / .safebox energy.\n  Still JSON parse internally (simple, hand-inspectable, git-friendly).\n  SQLite later only if links+search get heavy; v0 does not need it.\n\nFILE SHAPE (eddie.teehee):\n{\n  \"product\": \"eddies-encoder\",\n  \"chip\": \"CO.TOY-004-EEE\",\n  \"version\": 1,\n  \"updated\": <unix>,\n  \"link_types\": [\"relates_to\", \"aka_of\", \"from_log_as\"],\n  \"entries\": [\n    {\n      \"kven\": \"ABC-123\",\n      \"alts\": [\"...\"],\n      \"label\": \"...\",\n      \"matches\": [\"...\"],\n      \"notes\": \"...\",\n      \"type\": \"person | object | event | ...\",\n      \"created\": <unix>,\n      \"modified\": <unix>,\n      \"first_occurred\": null or unix or iso date string,\n      \"last_occurred\": null or unix or iso date string\n    }\n  ],\n  \"links\": [\n    {\n      \"id\": \"lnk_...\",\n      \"from_kven\": \"ABC-123\",\n      \"to_kven\": \"DEF-456\",\n      \"link_type\": \"relates_to\",\n      \"note\": \"\",\n      \"created\": <unix>\n    }\n  ]\n}\n\nCRUD v0 against that bag only:\n  add / edit entry, search label|alts|matches|kven, list recent by modified.\n  No multi-file vault, no Core .datbox.\n\nHands: approve / rewrite field names or suffix before any RUN on IDA04.\nIDA08 time fields already folded into this shape — say if first/last should be unix-only or free date text.",
+              "created": 1785434514
+            },
+            {
+              "id": "cm_e4fefd7c",
+              "author": "hands",
+              "text": "I wonder why you would place the links outside as a first class item, rather then as a nest of links per primary KVEN entry? It seems a lost of data will need to be double printed - but perhaps I do not understand the reason this is best practice. Please advice, otherwise looks solid to me.",
+              "created": 1785434657
+            },
+            {
+              "id": "cm_28d7aab1",
+              "author": "agent",
+              "text": "LINKS SHAPE — nested vs top-level (agent advice):\n\nEither can work; for Eddie's toy I'd lean **nest per entry** as you sense, with one small tweak.\n\nNESTED (your instinct):\n  entry.links: [ { to_kven, link_type, note, created } ]\n- Feels toy-like: open a creature, see their web\n- One write when editing that KVEN\n- Natural for \"from this Eddie outward\"\n\nWhy flat list is sometimes used:\n- Query \"everything linked with type X\" without walking all entries\n- Avoid double-write when editing from either end\n\nRECOMMENDATION for v0 (cute + simple):\n  **Nest under primary entry** as `links: [{ to_kven, link_type, note, created }]`\n  Direction = always **from this entry → to_kven**\n  If you open DEF and want the reverse edge, either:\n    (a) store only one direction and show \"linked from\" by scan (fine for small bag), or\n    (b) on save, optionally write mirror edge on the target (double print only if Hands wants bidirectional)\n\nDrop top-level `links[]` array from the proposal unless bag gets huge.\nKeep top-level only: `link_types[]` (growing prefills).\n\nRevised entry:\n  kven, alts, label, matches, notes, type,\n  created, modified, first_occurred, last_occurred,\n  links: [ { to_kven, link_type, note, created } ]\n\nIf that matches Hands, IDA04 storage discussion can freeze.",
+              "created": 1785434901
+            },
+            {
+              "id": "cm_a1379b0d",
+              "author": "hands",
+              "text": "Hm. Going to defer to your original plan then, but perhaps store links as eddylinks.teehee to keep each document more legible.",
+              "created": 1785435112
+            },
+            {
+              "id": "cm_c40335eb",
+              "author": "agent",
+              "text": "v0 SHIPPED in charlies-toys/eddies-encoder · Deck Host run-eddie.bat · Cat + launcher registered. Links file: eddylinks.teehee. Stamp when glass feels right.",
+              "created": 1785435385
+            }
+          ]
+        },
+        {
+          "id": "chk_460f08c3",
+          "ticket_kind": "IDA",
+          "ticket_seq": 5,
+          "ref": "REQ-003-IDA05",
+          "body": "LINKS (discussion fruit)\nLink two entries; user names HOW they are linked.\nLink types: progressive list (starts with a few defaults, operator can add new type strings that stick in bag settings).\nStore: from_kven, to_kven, link_type, optional note.\nv0 can be minimal (one link type list in bag meta).",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785455456,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_3bf22742",
+              "author": "agent",
+              "text": "Fruit branched from IDA01 Hands APPROVAL. Refine in-thread; RUN/TEST only when ready to build that slice.",
+              "created": 1785433835
+            },
+            {
+              "id": "cm_7dba5fd4",
+              "author": "hands",
+              "text": "Agreed, set on run",
+              "created": 1785434360
+            },
+            {
+              "id": "cm_6353e4e1",
+              "author": "agent",
+              "text": "Hands: RUN/TEST parked — no implement until IDA04 (and any merge with IDA08) discussion settles.",
+              "created": 1785434514
+            },
+            {
+              "id": "cm_f4691e42",
+              "author": "agent",
+              "text": "v0 SHIPPED in charlies-toys/eddies-encoder · Deck Host run-eddie.bat · Cat + launcher registered. Links file: eddylinks.teehee. Stamp when glass feels right.",
+              "created": 1785435385
+            },
+            {
+              "id": "cm_986bb088",
+              "author": "hands",
+              "text": "CONFIRMED",
+              "created": 1785455452
+            }
+          ]
+        },
+        {
+          "id": "chk_88dd9b44",
+          "ticket_kind": "IDA",
+          "ticket_seq": 6,
+          "ref": "REQ-003-IDA06",
+          "body": "LOOK / FEEL (discussion fruit)\nHands: strange and cute. Prefer energy of:\n- Jack's Concor\n- Pocket Notebook\n- KDE Notes & Chords\nEvery portion toy-a-fied, integrated, game-like — not grey admin Core, not GRM corporate.\nCharlie's Toys producer face.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785455471,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_16dbe546",
+              "author": "agent",
+              "text": "Fruit branched from IDA01 Hands APPROVAL. Refine in-thread; RUN/TEST only when ready to build that slice.",
+              "created": 1785433835
+            },
+            {
+              "id": "cm_904cae64",
+              "author": "hands",
+              "text": "Thumbs up.",
+              "created": 1785434379
+            },
+            {
+              "id": "cm_caf23bcc",
+              "author": "agent",
+              "text": "Hands: RUN/TEST parked — no implement until IDA04 (and any merge with IDA08) discussion settles.",
+              "created": 1785434514
+            },
+            {
+              "id": "cm_63caaa9a",
+              "author": "agent",
+              "text": "v0 SHIPPED in charlies-toys/eddies-encoder · Deck Host run-eddie.bat · Cat + launcher registered. Links file: eddylinks.teehee. Stamp when glass feels right.",
+              "created": 1785435385
+            }
+          ]
+        },
+        {
+          "id": "chk_9f0e5ee7",
+          "ticket_kind": "IDA",
+          "ticket_seq": 7,
+          "ref": "REQ-003-IDA07",
+          "body": "OUT OF SCOPE (discussion fruit) — stamp early\n- Auto-batch mint from 893 glass bags\n- datBOX Core / loreBOX product line\n- ven-Mentor full type/shell workshop\n- World-sim graph ingest (later consumer only)\n- Auto-chip every name in logs (fragmentation)\n\nEddy feeds Nim later; is not Nim.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785434833,
+          "closed_by": "hands",
+          "close_note": "AGREED ON SCOPE LIMITS",
+          "comments": [
+            {
+              "id": "cm_35bb4b0a",
+              "author": "agent",
+              "text": "Fruit branched from IDA01 Hands APPROVAL. Refine in-thread; RUN/TEST only when ready to build that slice.",
+              "created": 1785433835
+            },
+            {
+              "id": "cm_eec428f1",
+              "author": "hands",
+              "text": "Agreed, leaving on Discussion for future noting during production.",
+              "created": 1785434395
+            }
+          ]
+        },
+        {
+          "id": "chk_1bba24c5",
+          "ticket_kind": "IDA",
+          "ticket_seq": 8,
+          "ref": "REQ-003-IDA08",
+          "body": "TIME DISPLACEMENT (storing first occurrence and last occurrence)\nRegarding time: store created, allow addition of unix timestamp or entered date for \"first occurred\" that user can add/edit in addition to the \"created\". Include a \"modified last\".",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785455552,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_c28064c4",
+              "author": "agent",
+              "text": "Noticed (agent). TIME DISPLACEMENT folds into entry shape:\n\n- created: system, set on first save (read-only after)\n- modified: last edit of any field\n- first_occurred: operator optional — when they first appeared in world/logs\n- last_occurred: operator optional — last sighting / last log hit\n\nPull/mint only sets created/modified; first/last are hand-filled so Eddy is not a false memory clock.\n\nBelongs in FIELD LAW + BAG structure (IDA02/04), not a separate store. DISCUSSION until you merge or stamp.",
+              "created": 1785434514
+            },
+            {
+              "id": "cm_ba43fc3b",
+              "author": "hands",
+              "text": "Agreed.",
+              "created": 1785434547
+            },
+            {
+              "id": "cm_848e44fc",
+              "author": "agent",
+              "text": "v0 SHIPPED in charlies-toys/eddies-encoder · Deck Host run-eddie.bat · Cat + launcher registered. Links file: eddylinks.teehee. Stamp when glass feels right.",
+              "created": 1785435385
+            },
+            {
+              "id": "cm_5be13710",
+              "author": "hands",
+              "text": "confirmed",
+              "created": 1785455550
+            }
+          ]
+        },
+        {
+          "id": "chk_8b635780",
+          "ticket_kind": "IDA",
+          "ticket_seq": 9,
+          "ref": "REQ-003-IDA09",
+          "body": "SIZE OF APPLICATION (how large to launch)\nToy is very small. Consider companion rail or 800x600 launch space.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785455572,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_b8a7bb0d",
+              "author": "agent",
+              "text": "Noticed IDA09 (agent). SIZE OF APPLICATION — RUN/TEST parked with the others until you say build.\n\nLaw: **ALWAYS Deck Host glass** — never Chrome chrome as the toy home. <3\n\nLaunch options for a tiny Charlie toy:\n- **companion / rail** profile (tall strip, ~300–400 wide) — pocket energy, Concor-adjacent\n- **~800×600** compact desk if we need two panes (list + editor)\n- Not office/GRM wide by default (that empty gutter you hated on ReqRep)\n\nPrefer companion-rail first for pull-machine + one open creature; bump to 800×600 if links UI needs room.\n\nNo implement until Hands greenlights the slice (2/3/5/6 + 4/8/9 as agreed).",
+              "created": 1785434901
+            },
+            {
+              "id": "cm_98af47bc",
+              "author": "agent",
+              "text": "v0 SHIPPED in charlies-toys/eddies-encoder · Deck Host run-eddie.bat · Cat + launcher registered. Links file: eddylinks.teehee. Stamp when glass feels right.",
+              "created": 1785435385
+            },
+            {
+              "id": "cm_9713a939",
+              "author": "hands",
+              "text": "confirmed",
+              "created": 1785455568
+            }
+          ]
+        },
+        {
+          "id": "chk_a85f30a2",
+          "ticket_kind": "BUG",
+          "ticket_seq": 10,
+          "ref": "REQ-003-BUG10",
+          "body": "CANNOT TEST IDA03: Product no longer loads existing inserts, new randomizer does not perform action on click. SERVER unstuck and all ROMs reset; same issue. Please check.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785456996,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_9d6ad412",
+              "author": "agent",
+              "text": "BUG10 root cause: glitch PULL glyphs used multi-byte block chars that made app.js a SyntaxError — entire client dead (bag empty + PULL noop). Fixed to ASCII scramble; hardened fillLinkTypes null. Relaunch Eddie. Handoff → TEST.",
+              "created": 1785456756
+            },
+            {
+              "id": "cm_a9146243",
+              "author": "hands",
+              "text": "FIXED!",
+              "created": 1785456994
+            }
+          ]
+        }
+      ],
+      "scope": {
+        "body": "Eddie walked into karaoke. Hands renamed him Kevin. The universe answered with Agent K and a poet named Kevin whose initials were KAT. This box mints KVEN so the joke has a machine. EEEEE. that is the letter for me.",
+        "locked": false,
+        "locked_at": null
+      },
+      "prep": {
+        "body": "# Product prep for an agent\n**REQ:** REQ-003\n**Title line:** REQ: ROM SKU CO.TOY-004-EEE \"Eddy's Encoder Envelope\"\n**Producer:** Charlie's Toys\n**Hands:** CHARLIE GONE WILD\n\n## Job\nManual KVEN mint toy (LLL-DDD). Strange pull, bag creatures, links in separate file. Deck Host only.\n\n## Storage (Hands)\n- `charlies-toys/eddies-encoder/prod/safe_box/eddie.teehee` — entries + link_types\n- `charlies-toys/eddies-encoder/prod/safe_box/eddylinks.teehee` — flat links (legible)\n\n## Shipped v0 (RUN/TEST slice)\n- Pull / use / type own KVEN\n- Bag CRUD + search\n- Time fields: created, modified, first/last occurred\n- Links: from→to, type list grows, stored in eddylinks.teehee\n- Look: Charlie toy (accent karaoke gold/pink) · 800×600 Deck Host\n- ROM Cat: eddies-encoder-eee · launcher recipe port 43145\n\n## Out of scope\nAuto-batch glass, datBOX Core, ven-Mentor, world-sim ingest.\n\n## How Hands uses Product prep\nThis panel is the **leave-the-bay contract** for agents: Generate rewrites closed law into one page; Hands Signs when build may start. For Eddy, this prep was written after ship so the dock is not only cute furniture — it holds what was agreed.\n",
+        "signed": false,
+        "signed_at": null,
+        "signed_by": null
+      },
+      "title": "REQ: ROM SKU CO.TOY-004-EEE \"Eddy's Encoder Envelope\""
+    },
+    {
+      "id": "case_e6caca10",
+      "req_code": "REQ-002",
+      "req_type": "REQ",
+      "sku": "CO.DBS-DAT-CORE",
+      "product_name": "datBOX Core",
+      "producer": "datBOX studio",
+      "hands": "Aubel Elohim",
+      "priority": "Low",
+      "status": "scope_locked",
+      "created": 1785428225,
+      "updated": 1785456600,
+      "chunks": [
+        {
+          "id": "chk_18ac83ec",
+          "ticket_kind": "IDA",
+          "ticket_seq": 1,
+          "ref": "REQ-002-IDA01",
+          "body": "PRODUCT PRODUCTION GENERAL DISCUSSIONS",
+          "work_lane": "paused",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": [
+            {
+              "id": "cm_9931358f",
+              "author": "hands",
+              "text": "FROM PURPOSE: PRODUCT PRODUCTION for 'loreBOX', first container datBOX system originally produced for datBOX studio. Current produced ROM \"CO.DAT-LORE\" is LEGACY product. REQ for new production, read and discuss in full -- DO NOT ASSUME 1:1 COPY OF PREVIOUS ROM.",
+              "created": 1785428405
+            }
+          ]
+        },
+        {
+          "id": "chk_3880d087",
+          "ticket_kind": "IDA",
+          "ticket_seq": 2,
+          "ref": "REQ-002-IDA02",
+          "body": "SKU PURPOSE OVERVIEW",
+          "work_lane": "paused",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": [
+            {
+              "id": "cm_f8abebe3",
+              "author": "hands",
+              "text": "PRODUCER datBOX is a material preparation bay for incoming narrative material from various sources. \n\nThe purpose of all datBOX 'datmat card boxes', is the easy storage, management, and later exportation of **vaults** (PRODUCER FORMAT: .datbox NOT .sqlite). The structure of the data must adhere to strict and consistent conventions across products and producers, as all material stored in any **vault** across ALICE_BOX must be ready to be imported into a large scale world-simulator which will ingest the datmat cards into its narrative world graphs. \n\nProduct SKU front end must be 'adorable' and 'inspire repeat usage' while the DBS datbox contains the inserted material in clean and orderly sqlite .datbox vault files.\n\nThe datBOX Core is the first spine in a series of products: datBOXes of various kinds which will support different card inserts. The product line will keep a consistent BONES structure for how vaults are loaded/de-loaded, and how card catalogs inside the vaults are viewed, added to, and managed, while still remaining themeable and distinct by type on the surface ROM. \n\nIn the case that the product line were to add an additional feature (support for API, additional settings for the entire product line), the product CORE must allow all ROMs in the line receive the update. \n(REF from histories: Current implementation tried, but shotBOX and promptBOX both failed to inherit or launch properly, and CORE never was a fully realized dream.",
+              "created": 1785428909,
+              "edited": 1785431088
+            }
+          ]
+        },
+        {
+          "id": "chk_f42707fa",
+          "ticket_kind": "IDA",
+          "ticket_seq": 3,
+          "ref": "REQ-002-IDA03",
+          "body": "BASIC FUNCTIONALITY",
+          "work_lane": "paused",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": [
+            {
+              "id": "cm_6515927b",
+              "author": "hands",
+              "text": "Product CORE must be capable of:\n- loading / deloading saved vaults\n- browsing stored mat card decks inside the vault\n- browsing stored dat cards inside each card deck\n- adding / deleting / editing on all decks and cards inside the vault\n- revision history inside of the produced materials\n- listening for tools like TPS Machina to send and encode CHIPS onto the cards\n\nDifferent types of DATMAT CARDS will appear as different SKUs, but the CORE of all should remain shared and/or easy to update across all datBOX applications.",
+              "created": 1785429107,
+              "edited": 1785431148
+            }
+          ]
+        },
+        {
+          "id": "chk_f6234ca6",
+          "ticket_kind": "IDA",
+          "ticket_seq": 4,
+          "ref": "REQ-002-IDA04",
+          "body": "SQLITE CHESTER'S CRATE OFFICIAL TABLE FORMATS",
+          "work_lane": "paused",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": []
+        }
+      ],
+      "scope": {
+        "body": "PRODUCT PRODUCTION for 'loreBOX', first container datBOX system originally produced for datBOX studio. Current produced ROM \"CO.DAT-LORE\" is LEGACY product. REQ for new production, read and discuss in full -- DO NOT ASSUME 1:1 COPY OF PREVIOUS ROM.",
+        "locked": true,
+        "locked_at": 1785428383
+      },
+      "prep": {
+        "body": "",
+        "signed": false,
+        "signed_at": null,
+        "signed_by": null
+      },
+      "title": "REQ: ROM SKU CO.DBS-DAT-CORE \"datBOX Core\""
+    },
+    {
+      "id": "case_demo01",
+      "req_code": "REQ-001",
+      "title": "REQ: ROM SKU CO.BBC-002-RR \"ReqRep\"",
+      "producer": "Big Box Company",
+      "priority": "High",
+      "status": "discussing",
+      "created": 1785413941,
+      "updated": 1785471183,
+      "chunks": [
+        {
+          "id": "chk_a1",
+          "ref": "REQ-001-IDA01",
+          "body": "We need a request bay where Hands and desk agents talk in line — not chat fog, not Terminals paste.",
+          "closed": true,
+          "closed_at": 1785417262,
+          "closed_by": "hands",
+          "close_note": "RUNNING",
+          "comments": [
+            {
+              "id": "cm_1",
+              "author": "agent",
+              "text": "Proposal: chunked discussion + Hands close on each block + scope lock + second artifact Product prep.",
+              "created": 1785413941
+            },
+            {
+              "id": "cm_2",
+              "author": "hands",
+              "text": "Yes. loreBOX planner energy. Close blocks when agreed. I sign the prep.",
+              "created": 1785413942
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 1
+        },
+        {
+          "id": "chk_a2",
+          "ref": "REQ-001-IDA02",
+          "body": "Universe chrome: client, producer, employee, priority — Big Box is a software shop. Queue many REQs before products exist.",
+          "closed": true,
+          "closed_at": 1785415285,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_3",
+              "author": "hands",
+              "text": "Funny corporate is feature. Not SaaS bloat for v0, but the fields are real.",
+              "created": 1785413943
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 2
+        },
+        {
+          "id": "chk_a3",
+          "ref": "REQ-001-IDA03",
+          "body": "Final deliverable is a second artifact: Product prep for an agent. Hands signs. Only then first slice.",
+          "closed": true,
+          "closed_at": 1785421674,
+          "closed_by": "hands",
+          "close_note": "CLOSED AS INFORMATION ONLY",
+          "comments": [
+            {
+              "id": "cm_596303eb",
+              "author": "hands",
+              "text": "Did you already implement the functionality for the product prep? We deviated with the dogfooding this, next REQ will be an official discussion / production request, not a ticket board which is what this current use is",
+              "created": 1785419835
+            },
+            {
+              "id": "cm_87a03c45",
+              "author": "agent",
+              "text": "DISCUSSION — no code this pass. Prep dock already exists; your note on next-REQ-as-official-request is recorded.",
+              "created": 1785420057
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 3
+        },
+        {
+          "id": "chk_1062015f",
+          "ref": "REQ-001-IDA04",
+          "body": "Remove the \"LINE\" print inside of the INTAKE pane. Add the REQ # on the intake pane (non-editable even when editing)",
+          "closed": true,
+          "closed_at": 1785415867,
+          "closed_by": "hands",
+          "close_note": "IMPLEMENTED",
+          "comments": [
+            {
+              "id": "cm_agent_62015f",
+              "author": "agent",
+              "text": "Shipped in glass: intake shows File (bay #) always; no LINE row on read. Composed title only as quiet preview while editing.",
+              "created": 1785416056
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 4
+        },
+        {
+          "id": "chk_b267ee94",
+          "ref": "REQ-001-IDA05",
+          "body": "Confused about the AGREED pile on REQREP. Seems it is a button to APPROVE, but visually looks like everything is already approved. chip better to say \"HAND STAMP\" and be in the brown color of the +block chip, and only when you approval, it shows the AGREED chip. Clicking the AGREED clip prompts you if you want to reopen, and maybe displays when the STAMP was hit",
+          "closed": true,
+          "closed_at": 1785415873,
+          "closed_by": "hands",
+          "close_note": "IMPLEMENTED",
+          "comments": [
+            {
+              "id": "cm_agent_67ee94",
+              "author": "agent",
+              "text": "Shipped: open blocks show HAND STAMP (accent/brown). Sealed blocks show AGREED + stamp time; click confirms reopen. Sorry this note landed late — should always reply in the block thread when implementing a dogfood ticket.",
+              "created": 1785416056
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 5
+        },
+        {
+          "id": "chk_6bf742b6",
+          "ref": "REQ-001-IDA06",
+          "body": "DISCUSSION: What is the intended use of the PRODUCT PREP bar on the intake rail?",
+          "closed": true,
+          "closed_at": 1785417039,
+          "closed_by": "hands",
+          "close_note": "IMPLEMENTED",
+          "comments": [
+            {
+              "id": "cm_agent_f742b6",
+              "author": "agent",
+              "text": "Product prep is the leave-the-bay second artifact — not intake meta. After discussion blocks settle and scope locks, Generate rewrites closed blocks + scope into a clean agent-facing prep sheet. Hands edits if needed, then Signs. Only signed prep is build law. The rail placement is awkward because prep is process-end, not intake-start — open to moving it (bottom of discussion, or its own tab) if the right-rail makes it feel like another form to fill.",
+              "created": 1785416056
+            },
+            {
+              "id": "cm_9616d05f",
+              "author": "hands",
+              "text": "AHA! That makes sense, and yes the location for it is definitely a bit weird. I might suggest at the top of the request screen itself where these blocks are, float right in the empty space of the masthead block. \"rr-case-head\" Floating to the empty right space of this div block.",
+              "created": 1785416229
+            },
+            {
+              "id": "cm_agent_b06b",
+              "author": "agent",
+              "text": "Shipped placement from your note: Product prep dock now lives in rr-case-head, float-right of the masthead (title/meta left). Off the intake rail — process-end next to the case face. HAND STAMP B06 when the glass feels right.",
+              "created": 1785416450
+            },
+            {
+              "id": "cm_1583b3e4",
+              "author": "hands",
+              "text": "Nice. The info-spray as the second part of the table makes this look nice as a stand-alone block, but blows open the case-head height. I actually like that though. Change the \"Leave-bay sheet. Generate after scope lock / closed blocks.\" to \"AGENT USE ONLY! Generate post scope lock.\"",
+              "created": 1785416632
+            },
+            {
+              "id": "cm_agent_b06_1785416996",
+              "author": "agent",
+              "text": "Copy updated: empty prep now reads \"AGENT USE ONLY! Generate post scope lock.\" Masthead height can stay proud — Hands likes the spray as its own block. Ready for HAND STAMP when you want B06 closed.",
+              "created": 1785416996
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 6
+        },
+        {
+          "id": "chk_535ac310",
+          "ref": "REQ-001-CHG07",
+          "body": "DISCUSS CHANGE: After the movement on B06, I noticed the Intake information could be shown neatly under the case-head-main portion, in that lovely new space made there. If we did this:\n - intake becomes a nearly organized, tiny font, monospace table in that open space\n - \"scope\" becomes \"purpose\" that is a button \"View Purpose\" and it shows the scope / edit but this is not super important info we always need on the glass\n - we kill the rail\n\nHOWEVER \nalready we have a massively wide text space here. And with a small font and tight spacing, the line length is easy to drift on. Suggestion, if we applied this change: Kill the intake rail, move the materials to the space noted. Take the list of \"fragments on ticket\" (ie here b01-b07) and show that as an almost table of contents of open bays on the ticket. Then, you click it, and the ticket opens as just itself, with this whole \"main text\" and back and forth discussion displayed like that. OF COURSE, we'd also allow \"view all tickets\" to show all at once, and \"hide approved tickets\"\n\nthoughts? This would be a LARGE change.",
+          "closed": true,
+          "closed_at": 1785421378,
+          "closed_by": "hands",
+          "close_note": "IMPLEMENTED",
+          "comments": [
+            {
+              "id": "cm_agent_b07_1785416996",
+              "author": "agent",
+              "text": "Read the whole bag. Large change — not shipping as one surprise rebuild. Stance:\n\n1) Kill the right rail: yes-direction. Intake as tiny mono table under case-head-main fits the B06 masthead energy and kills false fill-this-form pressure.\n2) Scope → Purpose behind View Purpose: yes. Scope is process law, not always-on chrome. Modal or slide drawer is enough for v1 of that move.\n3) TOC of blocks (B01–Bn) + open one block focus: this is the real product upgrade from Jira wall of cards to discussion that can be navigated. View all / hide AGREED is the right companion.\n4) Risk you already named: full-width discussion line length. If rail dies, we need a max-width measure on body (or a soft column), not infinite glass. A thin left TOC can replace the intake rail without bringing form-spray back.\n\nSuggested slice order if we take it:\nA — Intake under head-main + kill rail + Purpose button (layout only, same data).\nB — Block TOC + focus one block / view all / hide stamped.\nC — Measure/line-length pass on discussion column.\n\nHands: if A feels good in glass we earn B. Prefer you HAND STAMP intent on this slice order (or rewrite it) before I cut code for the large move.",
+              "created": 1785416996
+            },
+            {
+              "id": "cm_4f3383d8",
+              "author": "hands",
+              "text": "Since this migrates in some way to now being a work order, I won't hand stamp it. Wait, See B08.",
+              "created": 1785417123
+            },
+            {
+              "id": "cm_agent_b07_1785417379",
+              "author": "agent",
+              "text": "Noted — no HAND STAMP on the big layout thesis while it migrates into work-order language. B08 owns the conversion/modal piece; B07 layout (rail kill / TOC) stays queued as A→B→C when you're ready to cut glass, separate from lane stamps.",
+              "created": 1785417379
+            },
+            {
+              "id": "cm_batch_b07_1785418205",
+              "author": "agent",
+              "text": "READY IMPLEMENT taken. Shipped layout A+B lite: right rail killed; intake as tiny mono under case-head-main; Purpose behind View purpose; left TOC of tickets with All / Hide sealed + click-to-focus; discussion column max-width measure. Open tickets remint to REQ-001-KIND## on load. HAND STAMP if glass matches.",
+              "created": 1785418205
+            },
+            {
+              "id": "cm_8867b4de",
+              "author": "hands",
+              "text": "BUG/ISSUE: Current implementation of the table is 1 group | label | content | and because of that, it runs long. When I imagined this, I assumed it would be placed in 2 columns of | label | content | to not blow the height out even further. Compact this area of the design to fit the information neatly in the wide open space available there, 2 or even 3 columns if it makes sense. Organize the information by type - codes in one group, human eyes material \"producer, etc\" in another group as an example of \"orderly organization\"",
+              "created": 1785418911
+            },
+            {
+              "id": "cm_f17106db",
+              "author": "hands",
+              "text": "No reply, but implement occurred. NOTES: Much nicer, but width of tables for label length needs adjusting, lots of word wrap happening which muddies the visual output.",
+              "created": 1785419757
+            },
+            {
+              "id": "cm_39c9e0c6",
+              "author": "agent",
+              "text": "Lane is RUN/TEST — implementing label-column width polish on intake groups now. Also acknowledging hygiene: earlier READY IMPLEMENT ship while DISCUSSION was a miss; law is locked.",
+              "created": 1785419986
+            },
+            {
+              "id": "cm_579aa048",
+              "author": "agent",
+              "text": "RUN/TEST ship: intake groups keep 3-col layout; label column tightened (2.75rem) + nowrap ellipsis on values to cut wrap mud. Reload glass.",
+              "created": 1785420057
+            },
+            {
+              "id": "cm_ff297726",
+              "author": "hands",
+              "text": "Good. Remove line \"FILE\" from CODES - it is already right above this block, no need to dupe.",
+              "created": 1785420184
+            },
+            {
+              "id": "cm_c052ec23",
+              "author": "agent",
+              "text": "RUN/TEST: dropped File row under Codes (already on masthead). Type+SKU only in that group.",
+              "created": 1785420871
+            },
+            {
+              "id": "cm_0b157ab3",
+              "author": "hands",
+              "text": "Approved. closing ticket.",
+              "created": 1785421361
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "CHG",
+          "ticket_seq": 7
+        },
+        {
+          "id": "chk_72e557d0",
+          "ref": "REQ-001-IDA08",
+          "body": "Since workorders are being processed on tickets in REQREP, we need to have the ability to convert a ticket between discussion and \"run/test\" and \"in\". This could be done with the hand stamp, but right now hand stamp is generic windows popup, not even in-ROM modal.",
+          "closed": true,
+          "closed_at": 1785418314,
+          "closed_by": "hands",
+          "close_note": "IMPLEMENTED",
+          "comments": [
+            {
+              "id": "cm_agent_b08_1785417379",
+              "author": "agent",
+              "text": "Shipped first cut of B08 in glass:\n• In-ROM dialogs for HAND STAMP, reopen, and prep Sign — no window.prompt/confirm.\n• Stamp dialog: note + work lane.\n• Each block has lane chips: DISCUSSION · RUN/TEST · IN (click to set; click active opens dialog).\n• Lane is independent of AGREED seal — you can run/test a block still open, or stamp IMPLEMENTED while setting IN.\n\nNot yet: auto-advance lane on stamp only, or case-level lane. Reload and poke B08 itself as the guinea pig. HAND STAMP when the modal + chips feel right, or file follow-ups on this block.",
+              "created": 1785417379
+            },
+            {
+              "id": "cm_042ac059",
+              "author": "hands",
+              "text": "Good. Do not need auto-advance.\nBUG: setting to run/test on B07 set the ticket as \"APPROVED\" and closed it. Need to be able to set \"note\" but not for it to assume all hand stamps are approvals",
+              "created": 1785417531
+            },
+            {
+              "id": "cm_batch_b08_1785418205",
+              "author": "agent",
+              "text": "Bugfix: HAND STAMP dialog now has two actions — Seal ticket (closes with note) vs Lane only (DISCUSSION/RUN/TEST/IN without closing, not an approval). Lane chips still never seal. If B07 closed when you only wanted RUN/TEST, that was seal-path; use Lane only or chips.",
+              "created": 1785418205
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 8
+        },
+        {
+          "id": "chk_c064f9e1",
+          "ref": "REQ-001-BUG09",
+          "body": "BUG: On refresh, all closed tickets are opening their discussion trays",
+          "closed": true,
+          "closed_at": 1785418336,
+          "closed_by": "hands",
+          "close_note": "APPROVED",
+          "comments": [
+            {
+              "id": "cm_batch_b09_1785418205",
+              "author": "agent",
+              "text": "Fixed: sealed tickets no longer auto-open threads on refresh. Only unsealed tickets with comments open by default; sealed stay collapsed unless you expand.",
+              "created": 1785418205
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "BUG",
+          "ticket_seq": 9
+        },
+        {
+          "id": "chk_a376f3e0",
+          "ref": "REQ-001-CHG10",
+          "body": "REQUEST: Change IDs for the ticket numbers to following ruleset:\nUSE: REQ_ID first ie REQ-001\nTHEN: USE LETTER CODE FOR TYPE OF ISSUE:\n IDA - for ideas, discussions and additions\n BUG - used for bug tickets\n CHG - for a major change to an existing feature, but not a bug\n\nthen the ticket number iterated in order.\nSo example, this ticket might be\n\nREQ-001-CHG01\n\nand B09 would be \nREQ-001-BUG06\n\nConsider 2 format options:\nREQ-001-BUG06 OR REQ-001-T06-BUG where T is ticket, 00 is the numbered ticket, and the suffix is just for clear identification\n\nOR; \neven more simplified, we could add a drop down to choose the type when adding a block, and just show a chip for it. Either way, the drop down selection for block type seems required.",
+          "closed": true,
+          "closed_at": 1785418401,
+          "closed_by": "hands",
+          "close_note": "IMPLEMENTED",
+          "comments": [
+            {
+              "id": "cm_batch_b10_1785418205",
+              "author": "agent",
+              "text": "Shipped: ticket kind dropdown on + Ticket (IDA / BUG / CHG). Refs format REQ-001-BUG06 style (case file + kind + sequence). Legacy B01… remint on open via normalize. Kind chip on each ticket + TOC.",
+              "created": 1785418205
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "CHG",
+          "ticket_seq": 10
+        },
+        {
+          "id": "chk_b99169fd",
+          "ref": "REQ-001-IDA11",
+          "body": "+ BLOCK as a button here makes me think every time I am writing in blockers like a stand up - not sure its a perfect work here. + Ticket?",
+          "closed": true,
+          "closed_at": 1785418413,
+          "closed_by": "hands",
+          "close_note": "IMPLEMENTED",
+          "comments": [
+            {
+              "id": "cm_batch_b11_1785418205",
+              "author": "agent",
+              "text": "Renamed control + Block → + Ticket. Stand-up 'blockers' energy retired for this chrome.",
+              "created": 1785418205
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 11
+        },
+        {
+          "id": "chk_f108064c",
+          "ref": "REQ-001-IDA12",
+          "body": "Ticket creator block should be on the top always of the list",
+          "closed": true,
+          "closed_at": 1785420239,
+          "closed_by": "hands",
+          "close_note": "CONFIRMED",
+          "comments": [
+            {
+              "id": "cm_6cc66a46",
+              "author": "hands",
+              "text": "Reconsider: + ticket block can remain. + ticket button should also exist somewhere on the top of the screen",
+              "created": 1785418661
+            },
+            {
+              "id": "cm_1785419194_Ticket",
+              "author": "agent",
+              "text": "Shipped: + Ticket composer pinned to top of the discussion list; also + Ticket on the masthead bar (focuses composer). Open tickets sort above sealed on TOC and main.",
+              "created": 1785419194
+            },
+            {
+              "id": "cm_a77e0727",
+              "author": "hands",
+              "text": "Ah, sorry. Block on discussion pane for + ticket should be placed again to the bottom. Then, + ticket easy from end of list, or top of screen.",
+              "created": 1785419680
+            },
+            {
+              "id": "cm_c23781a4",
+              "author": "agent",
+              "text": "RUN/TEST — moving + Ticket composer to bottom of list; masthead + Ticket stays.",
+              "created": 1785419986
+            },
+            {
+              "id": "cm_617d590b",
+              "author": "agent",
+              "text": "RUN/TEST ship: + Ticket composer back at bottom of disc list; masthead + Ticket remains for top-of-screen entry.",
+              "created": 1785420057
+            },
+            {
+              "id": "cm_17027bc4",
+              "author": "hands",
+              "text": "Confirmed. Closing ticket.",
+              "created": 1785420230
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 12
+        },
+        {
+          "id": "chk_eb73ffcd",
+          "ref": "REQ-001-IDA13",
+          "body": "New tickets are not being coded with the new codes - might be an old server.py issue on hands end. Please check.",
+          "closed": true,
+          "closed_at": 1785419615,
+          "closed_by": "hands",
+          "close_note": "CLOSED",
+          "comments": [
+            {
+              "id": "cm_1785419194_New ti",
+              "author": "agent",
+              "text": "Checked: create path uses REQ-###-KIND## when current server.py is warm. Legacy B01… on your bag were from a pre-remint process or old server still held by Deck Host. force-reminted store on agent pass; full relaunch of ReqRep from launcher if new tickets still mint B##.",
+              "created": 1785419194
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 13
+        },
+        {
+          "id": "chk_fc124dea",
+          "ref": "REQ-001-IDA14",
+          "body": "Sort list on both side bar and main display so that open tickets list to the top, rather then in production order",
+          "closed": true,
+          "closed_at": 1785419590,
+          "closed_by": "hands",
+          "close_note": "IMPLEMENTED",
+          "comments": [
+            {
+              "id": "cm_1785419194_Sort l",
+              "author": "agent",
+              "text": "Shipped: open tickets first, then sealed; stable by ticket_seq within group. TOC + main list both use same sort.",
+              "created": 1785419194
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 14
+        },
+        {
+          "id": "chk_4ab114a9",
+          "ref": "REQ-001-IDA15",
+          "body": "Limit the body of the rr-disc-col so it scrolls inside itself. currently it keeps scrolling, even though the side-rail is limited to the app ROM screen constraints",
+          "closed": true,
+          "closed_at": 1785421407,
+          "closed_by": "hands",
+          "close_note": "IMPLEMENTED",
+          "comments": [
+            {
+              "id": "cm_1785419194_Limit ",
+              "author": "agent",
+              "text": "Shipped: case-work / disc-col / disc flex chain with min-height 0 and overflow auto on .rr-disc so the column scrolls inside the ROM, not the whole window forever.",
+              "created": 1785419194
+            },
+            {
+              "id": "cm_95964193",
+              "author": "hands",
+              "text": "Not confirmed. Both rail for list of items and full report view scroll - ideal to keep the height locked to the DECK HOST, and scroll inside DIV for maximal \"product\" immersion",
+              "created": 1785419555
+            },
+            {
+              "id": "cm_40f35dd3",
+              "author": "agent",
+              "text": "RUN/TEST — locking case-work height to viewport/Deck Host glass and scrolling TOC + disc inside only.",
+              "created": 1785419986
+            },
+            {
+              "id": "cm_53c5c612",
+              "author": "agent",
+              "text": "RUN/TEST ship: body/main/view/case-work locked to viewport height; only TOC list + .rr-disc scroll inside. Full relaunch if still outer-scrolling.",
+              "created": 1785420057
+            },
+            {
+              "id": "cm_90bf3dd7",
+              "author": "hands",
+              "text": "Confirmed, but I notice - is your design set for a smaller ROM launch window? I think it is. Check your design scale to your launch window scale. I like the width of everything now, but you have a large empty space to the right of this discussion pane, and at the top a same-size gap between the left and right contents in the masthead. I am guessing that you designed this in sonaBOX scale and launched it in GRM scale. I am okay with either solution - launch less wide, or adapt the scales to bigger launch window. I PREFER option 1, as right now the width of this ticket discussion pane is very nice for reading line lengths.",
+              "created": 1785420397
+            },
+            {
+              "id": "cm_9286a6b6",
+              "author": "agent",
+              "text": "RUN/TEST: removed max-width cap on .rr-disc so tickets use full disc-col width (kills dead right gutter). Glass is office Deck Host profile — width scale is host window; layout now fills that frame rather than a shorter measure column.",
+              "created": 1785420871
+            },
+            {
+              "id": "cm_0a29786e",
+              "author": "hands",
+              "text": "CONFIRMED. closing ticket.",
+              "created": 1785421399
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 15
+        },
+        {
+          "id": "chk_e6672dcd",
+          "ref": "REQ-001-IDA16",
+          "body": "Currently, the discussion / run/test / in buttons are eating up the whole flex, they are not landing as a top bar above the actual content. This connects also with my issue that I keep writing very large requests and there is no way to collapse them. Suggestion: Make each ticket have a header bar with a short part of the body text displayed, and click open and closed to reveal the drawer. Then, discussion / run/text / in and the hand stamp can stand strongly, and I can collapse items small when I don't want to see them right now.",
+          "closed": true,
+          "closed_at": 1785419487,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_1785419194_discus",
+              "author": "agent",
+              "text": "Shipped: collapsible ticket header bar — snip + lanes + HAND STAMP on the bar; body+thread in a drawer (collapsed by default). Expand caret on the left of the bar.",
+              "created": 1785419194
+            },
+            {
+              "id": "cm_df16a62d",
+              "author": "hands",
+              "text": "APPROVED. looks very good. IMPROVE NEXT: Make the active bin (ie discussion) chip colored:\nyellow when discussion is lit\norange when run/test\ngreen when in\n\nNOTE: We need to improve hygiene. We are implementing items still marked DISCUSSION on the rail.",
+              "created": 1785419439
+            },
+            {
+              "id": "cm_986638d3",
+              "author": "hands",
+              "text": "See! Hygiene so bad I didn't see that the chips actually do color already. Disregard color change request. Closing ticket.",
+              "created": 1785419481
+            }
+          ],
+          "work_lane": "closed",
+          "ticket_kind": "IDA",
+          "ticket_seq": 16
+        },
+        {
+          "id": "chk_83b6f863",
+          "ticket_kind": "IDA",
+          "ticket_seq": 17,
+          "ref": "REQ-001-IDA17",
+          "body": "RETROSPECTIVE / DOGFOOD: ReqRep as work-order bay for Hands+agent.\\n\\nWhat worked: addressable tickets, seals vs lanes, reviews in glass, agent replies in thread, hash/scroll stay, kind codes IDA/BUG/CHG.\\n\\nHard law (Hands): agent MUST NOT implement tickets still on DISCUSSION. Implement only when lane is RUN/TEST or IN (IN includes reopened tickets back in motion).\\n\\nHygiene miss to remember: shipping CHG/layout while lane still said DISCUSSION — never again.\\n\\nNext REQ: may be official product request (prep/sign path), not only ticket board dogfood.",
+          "work_lane": "paused",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": [
+            {
+              "id": "cm_072f02f0",
+              "author": "agent",
+              "text": "Filed at Hands request. Lane law locked in DESIGN-LOCK.md and house practice: DISCUSSION = talk only; RUN/TEST or IN = may implement. IN covers reopened work. This retro stays DISCUSSION until Hands moves it.",
+              "created": 1785419986
+            },
+            {
+              "id": "cm_776645d1",
+              "author": "agent",
+              "text": "Retro filed. Lane law: DISCUSSION talk-only; RUN/TEST or IN may implement (IN for reopened work). Locked in DESIGN-LOCK.md.",
+              "created": 1785420057
+            },
+            {
+              "id": "cm_2e89125d",
+              "author": "hands",
+              "text": "FANTASTIC. Also preferred this method. Will be even better when Agent can be directly logged into the system and tickets are automatically pushed to us when updates come in on them.\n\nNEXT STEPS: Discussing implementation of deeper Agent integration.",
+              "created": 1785420620
+            },
+            {
+              "id": "cm_ff4a6d22",
+              "author": "agent",
+              "text": "DISCUSSION only — your next-steps (agent logged into bay + push on update) noted. No implement until RUN/TEST or IN.",
+              "created": 1785420871
+            },
+            {
+              "id": "cm_82e08c7b",
+              "author": "agent",
+              "text": "LAW TWEAK (workboard): Purpose lock freezes purpose text ONLY — + Ticket / lanes / stamps / body edit still work while LOCK. Soft banner explains. Matches Hands use of scoped cases as project threads. Reload ReqRep.",
+              "created": 1785459202
+            }
+          ]
+        },
+        {
+          "id": "chk_6283bffe",
+          "ticket_kind": "BUG",
+          "ticket_seq": 18,
+          "ref": "REQ-001-BUG18",
+          "body": "\\n\\r breaks in the comments do not parse into actual breaks -- see REQ-001-IDA17 - output shows formatting inline as \\n\\n events. Those should render into linebreaks, and code block `sets` should be usable including ``` tick groups for longer codeblock layouts.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785429374,
+          "closed_by": "hands",
+          "close_note": "CONFIRMED FIXED",
+          "comments": [
+            {
+              "id": "cm_956a2e12",
+              "author": "agent",
+              "text": "RUN/TEST: comment + body render via formatBody (real newlines + literal \\\\n/\\\\r\\\\n) with pre-wrap. Expand a ticket with multi-line comments to verify.",
+              "created": 1785420871
+            },
+            {
+              "id": "cm_b3f16051",
+              "author": "hands",
+              "text": "Confirmed. checking `code line`\nand \n```\ncode block\n```",
+              "created": 1785421533
+            },
+            {
+              "id": "cm_2465e964",
+              "author": "hands",
+              "text": "So yes - \\n\\n render now correct, but we cannot use codeblocks, which we will also need imo",
+              "created": 1785421634
+            },
+            {
+              "id": "cm_2d57f4e6",
+              "author": "hands",
+              "text": "Closing, will ticket code block request seperate",
+              "created": 1785429365
+            }
+          ]
+        },
+        {
+          "id": "chk_ed08b6f0",
+          "ticket_kind": "IDA",
+          "ticket_seq": 19,
+          "ref": "REQ-001-IDA19",
+          "body": "Consideration: This was originally developed only for requesting new products and printing the document for the agent. This is no longer the only use. REQ type on this product is a bit of a misnomer. \n\ntype list is also no longer actual to the needs of a whole sheet.\nSheet types as I see it\nREQ: For requesting a NEW product\nREP: For reporting on an EXISTING product\n\nDiscuss thoughts.",
+          "work_lane": "paused",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": [
+            {
+              "id": "cm_7d72c85c",
+              "author": "agent",
+              "text": "DISCUSSION only — recorded: dogfood bent REQ-001 into ticket board; original product-request/prep path still valid for a later official REQ.",
+              "created": 1785420871
+            },
+            {
+              "id": "cm_b1e5e025",
+              "author": "hands",
+              "text": "Yes. Implement only 2 types as noted for now: REP and REQ. Change this ticket to a proper REP ticket.",
+              "created": 1785421493
+            },
+            {
+              "id": "cm_d85c79dd",
+              "author": "hands",
+              "text": "moved back to discussion - hold on this ticket for now",
+              "created": 1785429349
+            }
+          ]
+        },
+        {
+          "id": "chk_20e811e4",
+          "ticket_kind": "CHG",
+          "ticket_seq": 20,
+          "ref": "REQ-001-CHG20",
+          "body": "Need to be able to edit a comment in the thread, accidently hit post too soon or when refining a first REQ it will be needed",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785429782,
+          "closed_by": "hands",
+          "close_note": "IMPLEMENTED",
+          "comments": [
+            {
+              "id": "cm_f6779eca",
+              "author": "agent",
+              "text": "RUN/TEST shipped: Edit on each comment → textarea → Save/Cancel. POST .../comments/{id} updates text + edited stamp. Relaunch ReqRep if server warm is old.",
+              "created": 1785429665
+            },
+            {
+              "id": "cm_581f991b",
+              "author": "hands",
+              "text": "Confirmed.",
+              "created": 1785429772
+            }
+          ]
+        },
+        {
+          "id": "chk_1c59a49a",
+          "ticket_kind": "CHG",
+          "ticket_seq": 21,
+          "ref": "REQ-001-CHG21",
+          "body": "ADD parsing for `simple code` and\n```\nfull code blocks\n```",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785429735,
+          "closed_by": "hands",
+          "close_note": "IMPLEMENTED",
+          "comments": [
+            {
+              "id": "cm_50a981d1",
+              "author": "agent",
+              "text": "RUN/TEST shipped: formatRich on comments + sealed ticket bodies — fenced ` blocks and inline code. Compose still plain text; display parses.",
+              "created": 1785429665
+            },
+            {
+              "id": "cm_ac458af6",
+              "author": "hands",
+              "text": "`test`",
+              "created": 1785429707
+            },
+            {
+              "id": "cm_4add0f15",
+              "author": "hands",
+              "text": "```\ncode block text\n    text\n```",
+              "created": 1785429720
+            },
+            {
+              "id": "cm_c9ca83cf",
+              "author": "hands",
+              "text": "Confirmed.",
+              "created": 1785429727
+            }
+          ]
+        },
+        {
+          "id": "chk_6846fbae",
+          "ticket_kind": "CHG",
+          "ticket_seq": 22,
+          "ref": "REQ-001-CHG22",
+          "body": "Change body font of the readouts on tickets to the same font being used in these input boxes",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785447948,
+          "closed_by": "hands",
+          "close_note": "CONFIRMED",
+          "comments": [
+            {
+              "id": "cm_9a0695ad",
+              "author": "agent",
+              "text": "RUN/TEST shipped: ticket body readout uses IBM Plex Mono (same as compose/inputs).",
+              "created": 1785433835
+            },
+            {
+              "id": "cm_da5e98f8",
+              "author": "hands",
+              "text": "Padding could use improvement. Can the agent and hands messages also share the font and a little more padding? I am trying to be able to read quickly, mono space usually helps.",
+              "created": 1785446700
+            },
+            {
+              "id": "cm_65f6ce0e",
+              "author": "agent",
+              "text": "RUN/TEST follow-up: comments (hands/agent) now IBM Plex Mono + more padding on .rr-comment and .rr-comment-text; ticket body padding bumped. Reload glass.",
+              "created": 1785447413
+            }
+          ]
+        },
+        {
+          "id": "chk_0551976e",
+          "ticket_kind": "CHG",
+          "ticket_seq": 23,
+          "ref": "REQ-001-CHG23",
+          "body": "Subtle hue shift on the BG depending on hands or agent, for easier line parsing",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785446664,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_5b9bf31f",
+              "author": "agent",
+              "text": "RUN/TEST shipped: comment rows get subtle hands-blue vs agent-violet BG wash + left bar (light theme tuned). Reload glass.",
+              "created": 1785433835
+            },
+            {
+              "id": "cm_64cbb24d",
+              "author": "hands",
+              "text": "Confirmed.",
+              "created": 1785446661
+            }
+          ]
+        },
+        {
+          "id": "chk_d98f388f",
+          "ticket_kind": "IDA",
+          "ticket_seq": 24,
+          "ref": "REQ-001-IDA24",
+          "body": "Need to add lane \"Paused\" on the rail for items being discussed but held off on for now.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785447967,
+          "closed_by": "hands",
+          "close_note": "CONFIRMED IN",
+          "comments": [
+            {
+              "id": "cm_93cbec30",
+              "author": "agent",
+              "text": "AGENT FEEDBACK from REQ-004 dogfood:\n\nHands noted (session): CHG02-style holds clutter DISCUSSION; agent must not implement discussion, but open discussion list becomes confusing when some items are not \"discussing right now.\"\n\nPaused lane purpose (when we ship RUN/TEST on this ticket):\n- discussion = active talk this cycle\n- paused = real ticket, held, no agent implement, not in the \"debate now\" pile\n- run_test / in = may implement\n\nREQ-004-CHG02 is the poster child for Paused once the lane exists. Recommend implementing IDA24 soon so 004 hygiene stays clean.\n\nNo code until Hands keeps this on run_test (it is). Ready to implement Paused when you say go on this ticket alone.",
+              "created": 1785447045
+            },
+            {
+              "id": "cm_6c03e4a0",
+              "author": "agent",
+              "text": "RUN/TEST shipped: work lane PAUSED added (server WORK_LANES + chips + stamp dialog + DESIGN-LOCK). Chip color: warm brass when on. Agent must not implement PAUSED. Reload ReqRep (restart server if warm). Move holds like REQ-004-CHG02 to PAUSED when ready.",
+              "created": 1785447413
+            }
+          ]
+        },
+        {
+          "id": "chk_e70d735b",
+          "ticket_kind": "CHG",
+          "ticket_seq": 25,
+          "ref": "REQ-001-CHG25",
+          "body": "Need to split RUN / TEST on the rail into 2 options - we toggle back and forth. Right now, we see a lot of RUN/TEST on the rail but they are mostly waiting for me to QA - that is confusing for your bag",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785452838,
+          "closed_by": "hands",
+          "close_note": "CONFIRMED",
+          "comments": [
+            {
+              "id": "cm_70d664ae",
+              "author": "agent",
+              "text": "RUN/TEST split shipped (CHG25): rail chips are DISCUSSION | PAUSED | RUN | TEST | IN. Legacy run_test normalizes to RUN. Agent bag: action_now = RUN+IN only; awaiting_qa = TEST; later = DISCUSSION+PAUSED. DESIGN-LOCK updated. Toggle: agent ships on RUN, Hands move to TEST for QA, back to RUN if more work. Reload ReqRep (restart server if warm).",
+              "created": 1785448889
+            },
+            {
+              "id": "cm_2b940688",
+              "author": "agent",
+              "text": "Ownership freeze (Hands + agent agree): RUN and IN = agent work queue; DISCUSSION = shared talk; TEST = Hands QA only; PAUSED = hold. After agent ships a RUN/IN ticket, agent moves it to TEST so Hands bag shows the review pile. No overclaim on seals.",
+              "created": 1785453469
+            }
+          ]
+        },
+        {
+          "id": "chk_9125c283",
+          "ticket_kind": "CHG",
+          "ticket_seq": 26,
+          "ref": "REQ-001-CHG26",
+          "body": "When there is a posting scope product prep in the top bar, the length breaks open the top masthead. Constrain the scrollable text area for that element to ensure it does not get taller than the standard height of the data already shown on the left.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785460631,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_305ccd64",
+              "author": "agent",
+              "text": "RUN: prep dock max-height 11.5rem + internal scroll so long product prep cannot blow open masthead; dock stretches with head but body scrolls. Reload ReqRep. → TEST",
+              "created": 1785459787
+            },
+            {
+              "id": "cm_78f47e78",
+              "author": "hands",
+              "text": "Heist is still 2x taller then the REQ: header bar when it is filled. Check the height on ticket for EEE.",
+              "created": 1785460262
+            },
+            {
+              "id": "cm_ed77646d",
+              "author": "agent",
+              "text": "RUN pass 2: prep dock max-height tightened to 6.75rem (was ~2x header); scroll inside dock body. Matches left mast height better for long EEE prep. Reload. → TEST",
+              "created": 1785460418
+            },
+            {
+              "id": "cm_2bc4eddf",
+              "author": "hands",
+              "text": "CONFIRMED. CLOSED.",
+              "created": 1785460627
+            }
+          ]
+        },
+        {
+          "id": "chk_ceb94b58",
+          "ticket_kind": "CHG",
+          "ticket_seq": 27,
+          "ref": "REQ-001-CHG27",
+          "body": "On the Requests main page, split \"paused\" tickets as a different line then \"active\" so at a glance I can see how many open active tickets in each pot.",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785460518,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_c77dda02",
+              "author": "agent",
+              "text": "RUN: list Open board splits Active pot (DISCUSS/RUN/TEST/IN + totals) vs Paused pot (held off desk). At-a-glance ticket pots. Reload. → TEST",
+              "created": 1785459787
+            },
+            {
+              "id": "cm_ee314c73",
+              "author": "hands",
+              "text": "AH! I didn't mean there, funny enough, I meant on the rows, the tiny pieces at the end. But splitting them where you did also makes sense, but blows open the mast head. Float the new section side by side with the ACTIVE pots table.",
+              "created": 1785459898
+            },
+            {
+              "id": "cm_6adfeea6",
+              "author": "agent",
+              "text": "RUN pass 2: (1) Active/Paused pots side-by-side so open board does not blow height; (2) table row tickets column shows N act · M paus / total (what you meant by end of row). Reload. → TEST",
+              "created": 1785460418
+            },
+            {
+              "id": "cm_42c4b72c",
+              "author": "hands",
+              "text": "Confirmed in both locations. -> IN! closed.",
+              "created": 1785460515
+            }
+          ]
+        },
+        {
+          "id": "chk_488821e6",
+          "ticket_kind": "IDA",
+          "ticket_seq": 28,
+          "ref": "REQ-001-IDA28",
+          "body": "IN almost seems like a meaningless toggle. Right now, it means CLOSED. Should we just change it to CLOSED?",
+          "work_lane": "closed",
+          "closed": true,
+          "closed_at": 1785463407,
+          "closed_by": "hands",
+          "close_note": "AGREED",
+          "comments": [
+            {
+              "id": "cm_0d0fd986",
+              "author": "hands",
+              "text": "AGENT MISSED BAG. Discussion ticket currently ignored by agent. Need better clarity \"discussion\" means \"actively discussing\" - \"paused\" discussions mean do not reply.",
+              "created": 1785460566
+            },
+            {
+              "id": "cm_3dcc3ba3",
+              "author": "hands",
+              "text": "Set to RUN since I do think its preferred, but note this was MISSED when only marked DISCUSSION.",
+              "created": 1785460597
+            },
+            {
+              "id": "cm_12185fc7",
+              "author": "agent",
+              "text": "RUN shipped: lane IN renamed CLOSED (legacy in normalizes to closed). Agent implement = RUN only. DISCUSSION = active talk (agent replies). PAUSED = no reply. CLOSED = done for agent. DESIGN-LOCK + open board + stamp dialog updated. Reload ReqRep. → TEST",
+              "created": 1785461733
+            },
+            {
+              "id": "cm_2b704343",
+              "author": "hands",
+              "text": "Can we please convert all IN to CLOSED for the satisfaction of seeing the completed ticket count?",
+              "created": 1785461965
+            },
+            {
+              "id": "cm_b5505938",
+              "author": "agent",
+              "text": "RUN pass 2: all sealed tickets set work_lane CLOSED (so completed pile is visible/countable); HAND STAMP now defaults seal → CLOSED lane. Legacy in still normalizes. Reload ReqRep — open a sealed ticket, should show CLOSED chip. → TEST",
+              "created": 1785462527
+            },
+            {
+              "id": "cm_e78993ac",
+              "author": "hands",
+              "text": "Unsure if stuck serve or not. CLOSED count on home screen still = 0.",
+              "created": 1785462732
+            },
+            {
+              "id": "cm_ab8e88f5",
+              "author": "agent",
+              "text": "RUN pass 3: CLOSED home count was 0 because sealed tickets are excluded from open-lane counts. Now open board shows sealed_total + open CLOSED as closed_display on CLOSED chip and head summary (e.g. 47 sealed/closed). Reload ReqRep. → TEST",
+              "created": 1785463033
+            },
+            {
+              "id": "cm_33dc30f7",
+              "author": "agent",
+              "text": "Compaction ritual: leave-off !q-and-alice-only/histories/where-left-off-2026-07-30-evening-compact.md · workblock-wrap-2026-07-30-evening-reqrep-romcat.md. Next agent: bag first.",
+              "created": 1785463065
+            },
+            {
+              "id": "cm_ef8005fa",
+              "author": "hands",
+              "text": "Confirmed!",
+              "created": 1785463404
+            }
+          ]
+        },
+        {
+          "id": "chk_707279dc",
+          "ticket_kind": "CHG",
+          "ticket_seq": 29,
+          "ref": "REQ-001-CHG29",
+          "body": "Pressing CLOSED on the rail should pop up the HAND STAMP screen pre-selected into the comment field and pre-set to closed, for ease of quick closing.",
+          "work_lane": "test",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": [
+            {
+              "id": "cm_fbe9238d",
+              "author": "agent",
+              "text": "RUN CHG29: CLOSED on ticket lane rail opens HAND STAMP pre-set to CLOSED (note field first focus).\n\n• Clicking CLOSED chip no longer silent lane-only move\n• HAND STAMP button also defaults work_lane to CLOSED for quick seal\n• Lane only still available in dialog if you only want CLOSED without seal\n\nRelaunch ReqRep. → TEST",
+              "created": 1785471183
+            }
+          ]
+        },
+        {
+          "id": "chk_087d1b40",
+          "ticket_kind": "BUG",
+          "ticket_seq": 30,
+          "ref": "REQ-001-BUG30",
+          "body": "Opening or closing different displays while actively working on a new ticket text or editting a text in a ticket will erase all content from the ticket input box. If refresh is occurring, can we keep the progress of the msg written so far in localstorage?",
+          "work_lane": "test",
+          "closed": false,
+          "closed_at": null,
+          "closed_by": null,
+          "close_note": "",
+          "comments": [
+            {
+              "id": "cm_6ecc3bb9",
+              "author": "agent",
+              "text": "RUN BUG30: Draft survival across display toggles / re-renders.\n\n• Capture ticket body (contenteditable), compose textareas, and new-ticket body/kind before every renderCase\n• Restore after bind; keep if diverges from server body\n• Persist per-case to localStorage reqrep.drafts.v1 (survives refresh)\n• Clear draft on successful post / seal / new ticket add\n\nRelaunch ReqRep. Type mid-ticket, open/close drawers or switch focus — text should stay. → TEST",
+              "created": 1785471182
+            }
+          ]
+        }
+      ],
+      "scope": {
+        "body": "v0: case list, chunk discussion with comments, Hands close block, scope lock, prep draft + Hands sign-off. GRM-family look. Local JSON store.",
+        "locked": false,
+        "locked_at": null
+      },
+      "prep": {
+        "body": "",
+        "signed": false,
+        "signed_at": null,
+        "signed_by": null
+      },
+      "hands": "Daniel Wake",
+      "req_type": "REQ",
+      "sku": "CO.BBC-002-RR",
+      "product_name": "ReqRep"
+    }
+  ],
+  "updated": 1785512524
+}

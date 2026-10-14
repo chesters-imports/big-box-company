@@ -1,0 +1,363 @@
+{
+  "schema": "reqrep.agent_inbox.v1",
+  "product": "reqrep",
+  "chip": "CO.BBC-002-RR",
+  "updated": 1785512524,
+  "store_updated": 1785512524,
+  "counts": {
+    "discussion": 0,
+    "paused": 7,
+    "run": 0,
+    "test": 3,
+    "closed": 0
+  },
+  "open_total": 10,
+  "sealed_total": 49,
+  "closed_display": 49,
+  "action_now": [],
+  "awaiting_qa": [
+    {
+      "ref": "REQ-001-BUG30",
+      "chunk_id": "chk_087d1b40",
+      "case_id": "case_demo01",
+      "req_code": "REQ-001",
+      "case_title": "REQ: ROM SKU CO.BBC-002-RR \"ReqRep\"",
+      "sku": "CO.BBC-002-RR",
+      "product_name": "ReqRep",
+      "priority": "High",
+      "ticket_kind": "BUG",
+      "work_lane": "test",
+      "peek": "Opening or closing different displays while actively working on a new ticket text or editting a text in a ticket will erase all content from",
+      "comment_count": 1,
+      "case_updated": 1785471183
+    },
+    {
+      "ref": "REQ-001-CHG29",
+      "chunk_id": "chk_707279dc",
+      "case_id": "case_demo01",
+      "req_code": "REQ-001",
+      "case_title": "REQ: ROM SKU CO.BBC-002-RR \"ReqRep\"",
+      "sku": "CO.BBC-002-RR",
+      "product_name": "ReqRep",
+      "priority": "High",
+      "ticket_kind": "CHG",
+      "work_lane": "test",
+      "peek": "Pressing CLOSED on the rail should pop up the HAND STAMP screen pre-selected into the comment field and pre-set to closed, for ease of quick",
+      "comment_count": 1,
+      "case_updated": 1785471183
+    },
+    {
+      "ref": "REQ-005-CHG02",
+      "chunk_id": "chk_18503f1f",
+      "case_id": "case_8b9b1479",
+      "req_code": "REQ-005",
+      "case_title": "MOD: ROM SKU CO.DCC-001-ROMCAT \"ROM Cat\"",
+      "sku": "CO.DCC-001-ROMCAT",
+      "product_name": "ROM Cat",
+      "priority": "Normal",
+      "ticket_kind": "CHG",
+      "work_lane": "test",
+      "peek": "ROM Cat julie case toggle addition:",
+      "comment_count": 10,
+      "case_updated": 1785466908
+    }
+  ],
+  "discussing": [],
+  "later": [
+    {
+      "ref": "REQ-004-CHG02",
+      "chunk_id": "chk_490ce71f",
+      "case_id": "case_e484f16f",
+      "req_code": "REQ-004",
+      "case_title": "MOD: ROM SKU CO.MYPT-002-NOTES \"My Pocket Notebook\"",
+      "sku": "CO.MYPT-002-NOTES",
+      "product_name": "My Pocket Notebook",
+      "priority": "Urgent",
+      "ticket_kind": "CHG",
+      "work_lane": "paused",
+      "peek": "FROM PREVIOUS REQUEST: Add the ability to open and close a \"last opened\" notebook pane while in a notebook. HOLDING FOR DISCUSSION / LATER I",
+      "comment_count": 1,
+      "case_updated": 1785459751
+    },
+    {
+      "ref": "REQ-001-IDA17",
+      "chunk_id": "chk_83b6f863",
+      "case_id": "case_demo01",
+      "req_code": "REQ-001",
+      "case_title": "REQ: ROM SKU CO.BBC-002-RR \"ReqRep\"",
+      "sku": "CO.BBC-002-RR",
+      "product_name": "ReqRep",
+      "priority": "High",
+      "ticket_kind": "IDA",
+      "work_lane": "paused",
+      "peek": "RETROSPECTIVE / DOGFOOD: ReqRep as work-order bay for Hands+agent.\\n\\nWhat worked: addressable tickets, seals vs lanes, reviews in glass, ag",
+      "comment_count": 5,
+      "case_updated": 1785471183
+    },
+    {
+      "ref": "REQ-001-IDA19",
+      "chunk_id": "chk_ed08b6f0",
+      "case_id": "case_demo01",
+      "req_code": "REQ-001",
+      "case_title": "REQ: ROM SKU CO.BBC-002-RR \"ReqRep\"",
+      "sku": "CO.BBC-002-RR",
+      "product_name": "ReqRep",
+      "priority": "High",
+      "ticket_kind": "IDA",
+      "work_lane": "paused",
+      "peek": "Consideration: This was originally developed only for requesting new products and printing the document for the agent. This is no longer the",
+      "comment_count": 3,
+      "case_updated": 1785471183
+    },
+    {
+      "ref": "REQ-002-IDA01",
+      "chunk_id": "chk_18ac83ec",
+      "case_id": "case_e6caca10",
+      "req_code": "REQ-002",
+      "case_title": "REQ: ROM SKU CO.DBS-DAT-CORE \"datBOX Core\"",
+      "sku": "CO.DBS-DAT-CORE",
+      "product_name": "datBOX Core",
+      "priority": "Low",
+      "ticket_kind": "IDA",
+      "work_lane": "paused",
+      "peek": "PRODUCT PRODUCTION GENERAL DISCUSSIONS",
+      "comment_count": 1,
+      "case_updated": 1785456600
+    },
+    {
+      "ref": "REQ-002-IDA02",
+      "chunk_id": "chk_3880d087",
+      "case_id": "case_e6caca10",
+      "req_code": "REQ-002",
+      "case_title": "REQ: ROM SKU CO.DBS-DAT-CORE \"datBOX Core\"",
+      "sku": "CO.DBS-DAT-CORE",
+      "product_name": "datBOX Core",
+      "priority": "Low",
+      "ticket_kind": "IDA",
+      "work_lane": "paused",
+      "peek": "SKU PURPOSE OVERVIEW",
+      "comment_count": 1,
+      "case_updated": 1785456600
+    },
+    {
+      "ref": "REQ-002-IDA03",
+      "chunk_id": "chk_f42707fa",
+      "case_id": "case_e6caca10",
+      "req_code": "REQ-002",
+      "case_title": "REQ: ROM SKU CO.DBS-DAT-CORE \"datBOX Core\"",
+      "sku": "CO.DBS-DAT-CORE",
+      "product_name": "datBOX Core",
+      "priority": "Low",
+      "ticket_kind": "IDA",
+      "work_lane": "paused",
+      "peek": "BASIC FUNCTIONALITY",
+      "comment_count": 1,
+      "case_updated": 1785456600
+    },
+    {
+      "ref": "REQ-002-IDA04",
+      "chunk_id": "chk_f6234ca6",
+      "case_id": "case_e6caca10",
+      "req_code": "REQ-002",
+      "case_title": "REQ: ROM SKU CO.DBS-DAT-CORE \"datBOX Core\"",
+      "sku": "CO.DBS-DAT-CORE",
+      "product_name": "datBOX Core",
+      "priority": "Low",
+      "ticket_kind": "IDA",
+      "work_lane": "paused",
+      "peek": "SQLITE CHESTER'S CRATE OFFICIAL TABLE FORMATS",
+      "comment_count": 0,
+      "case_updated": 1785456600
+    }
+  ],
+  "by_lane": {
+    "discussion": [],
+    "paused": [
+      {
+        "ref": "REQ-004-CHG02",
+        "chunk_id": "chk_490ce71f",
+        "case_id": "case_e484f16f",
+        "req_code": "REQ-004",
+        "case_title": "MOD: ROM SKU CO.MYPT-002-NOTES \"My Pocket Notebook\"",
+        "sku": "CO.MYPT-002-NOTES",
+        "product_name": "My Pocket Notebook",
+        "priority": "Urgent",
+        "ticket_kind": "CHG",
+        "work_lane": "paused",
+        "peek": "FROM PREVIOUS REQUEST: Add the ability to open and close a \"last opened\" notebook pane while in a notebook. HOLDING FOR DISCUSSION / LATER I",
+        "comment_count": 1,
+        "case_updated": 1785459751
+      },
+      {
+        "ref": "REQ-001-IDA17",
+        "chunk_id": "chk_83b6f863",
+        "case_id": "case_demo01",
+        "req_code": "REQ-001",
+        "case_title": "REQ: ROM SKU CO.BBC-002-RR \"ReqRep\"",
+        "sku": "CO.BBC-002-RR",
+        "product_name": "ReqRep",
+        "priority": "High",
+        "ticket_kind": "IDA",
+        "work_lane": "paused",
+        "peek": "RETROSPECTIVE / DOGFOOD: ReqRep as work-order bay for Hands+agent.\\n\\nWhat worked: addressable tickets, seals vs lanes, reviews in glass, ag",
+        "comment_count": 5,
+        "case_updated": 1785471183
+      },
+      {
+        "ref": "REQ-001-IDA19",
+        "chunk_id": "chk_ed08b6f0",
+        "case_id": "case_demo01",
+        "req_code": "REQ-001",
+        "case_title": "REQ: ROM SKU CO.BBC-002-RR \"ReqRep\"",
+        "sku": "CO.BBC-002-RR",
+        "product_name": "ReqRep",
+        "priority": "High",
+        "ticket_kind": "IDA",
+        "work_lane": "paused",
+        "peek": "Consideration: This was originally developed only for requesting new products and printing the document for the agent. This is no longer the",
+        "comment_count": 3,
+        "case_updated": 1785471183
+      },
+      {
+        "ref": "REQ-002-IDA01",
+        "chunk_id": "chk_18ac83ec",
+        "case_id": "case_e6caca10",
+        "req_code": "REQ-002",
+        "case_title": "REQ: ROM SKU CO.DBS-DAT-CORE \"datBOX Core\"",
+        "sku": "CO.DBS-DAT-CORE",
+        "product_name": "datBOX Core",
+        "priority": "Low",
+        "ticket_kind": "IDA",
+        "work_lane": "paused",
+        "peek": "PRODUCT PRODUCTION GENERAL DISCUSSIONS",
+        "comment_count": 1,
+        "case_updated": 1785456600
+      },
+      {
+        "ref": "REQ-002-IDA02",
+        "chunk_id": "chk_3880d087",
+        "case_id": "case_e6caca10",
+        "req_code": "REQ-002",
+        "case_title": "REQ: ROM SKU CO.DBS-DAT-CORE \"datBOX Core\"",
+        "sku": "CO.DBS-DAT-CORE",
+        "product_name": "datBOX Core",
+        "priority": "Low",
+        "ticket_kind": "IDA",
+        "work_lane": "paused",
+        "peek": "SKU PURPOSE OVERVIEW",
+        "comment_count": 1,
+        "case_updated": 1785456600
+      },
+      {
+        "ref": "REQ-002-IDA03",
+        "chunk_id": "chk_f42707fa",
+        "case_id": "case_e6caca10",
+        "req_code": "REQ-002",
+        "case_title": "REQ: ROM SKU CO.DBS-DAT-CORE \"datBOX Core\"",
+        "sku": "CO.DBS-DAT-CORE",
+        "product_name": "datBOX Core",
+        "priority": "Low",
+        "ticket_kind": "IDA",
+        "work_lane": "paused",
+        "peek": "BASIC FUNCTIONALITY",
+        "comment_count": 1,
+        "case_updated": 1785456600
+      },
+      {
+        "ref": "REQ-002-IDA04",
+        "chunk_id": "chk_f6234ca6",
+        "case_id": "case_e6caca10",
+        "req_code": "REQ-002",
+        "case_title": "REQ: ROM SKU CO.DBS-DAT-CORE \"datBOX Core\"",
+        "sku": "CO.DBS-DAT-CORE",
+        "product_name": "datBOX Core",
+        "priority": "Low",
+        "ticket_kind": "IDA",
+        "work_lane": "paused",
+        "peek": "SQLITE CHESTER'S CRATE OFFICIAL TABLE FORMATS",
+        "comment_count": 0,
+        "case_updated": 1785456600
+      }
+    ],
+    "run": [],
+    "test": [
+      {
+        "ref": "REQ-001-BUG30",
+        "chunk_id": "chk_087d1b40",
+        "case_id": "case_demo01",
+        "req_code": "REQ-001",
+        "case_title": "REQ: ROM SKU CO.BBC-002-RR \"ReqRep\"",
+        "sku": "CO.BBC-002-RR",
+        "product_name": "ReqRep",
+        "priority": "High",
+        "ticket_kind": "BUG",
+        "work_lane": "test",
+        "peek": "Opening or closing different displays while actively working on a new ticket text or editting a text in a ticket will erase all content from",
+        "comment_count": 1,
+        "case_updated": 1785471183
+      },
+      {
+        "ref": "REQ-001-CHG29",
+        "chunk_id": "chk_707279dc",
+        "case_id": "case_demo01",
+        "req_code": "REQ-001",
+        "case_title": "REQ: ROM SKU CO.BBC-002-RR \"ReqRep\"",
+        "sku": "CO.BBC-002-RR",
+        "product_name": "ReqRep",
+        "priority": "High",
+        "ticket_kind": "CHG",
+        "work_lane": "test",
+        "peek": "Pressing CLOSED on the rail should pop up the HAND STAMP screen pre-selected into the comment field and pre-set to closed, for ease of quick",
+        "comment_count": 1,
+        "case_updated": 1785471183
+      },
+      {
+        "ref": "REQ-005-CHG02",
+        "chunk_id": "chk_18503f1f",
+        "case_id": "case_8b9b1479",
+        "req_code": "REQ-005",
+        "case_title": "MOD: ROM SKU CO.DCC-001-ROMCAT \"ROM Cat\"",
+        "sku": "CO.DCC-001-ROMCAT",
+        "product_name": "ROM Cat",
+        "priority": "Normal",
+        "ticket_kind": "CHG",
+        "work_lane": "test",
+        "peek": "ROM Cat julie case toggle addition:",
+        "comment_count": 10,
+        "case_updated": 1785466908
+      }
+    ],
+    "closed": []
+  },
+  "law": {
+    "implement": [
+      "run"
+    ],
+    "hands_qa": [
+      "test"
+    ],
+    "discuss_reply": [
+      "discussion"
+    ],
+    "hold": [
+      "paused",
+      "closed"
+    ],
+    "note": "RUN = agent implement. DISCUSSION = actively discuss (agent reply). PAUSED = no reply required. TEST = Hands QA. CLOSED = done for agent (was IN). After ship, agent moves RUN → TEST.",
+    "ownership": {
+      "agent": [
+        "run"
+      ],
+      "hands_qa": [
+        "test"
+      ],
+      "shared_discuss": [
+        "discussion"
+      ],
+      "hold": [
+        "paused",
+        "closed"
+      ]
+    }
+  }
+}

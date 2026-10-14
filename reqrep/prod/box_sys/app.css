@@ -224,10 +224,21 @@ body.rr {
   line-height: 1.3;
   vertical-align: middle;
 }
-.rr-badge.is-discussing { border-color: #3a6a8a; color: #80c0e0; background: rgba(90,150,196,0.1); }
+.rr-badge.is-active { border-color: #3a6a8a; color: #80c0e0; background: rgba(90,150,196,0.1); }
+.rr-badge.is-on_hold { border-color: #8a6a3a; color: #e0c080; background: rgba(196,163,90,0.1); }
+.rr-badge.is-shelved { border-color: #666; color: #bbb; background: rgba(90,90,90,0.12); }
+.rr-badge.is-shipped { border-color: #3a6a4a; color: #8aba9a; background: rgba(90,150,110,0.12); }
 .rr-badge.is-scope_locked { border-color: #8a6a3a; color: #e0c080; background: rgba(196,163,90,0.1); }
-.rr-badge.is-prep_draft { border-color: #5a6a9a; color: #9aacd4; background: rgba(90,106,154,0.12); }
 .rr-badge.is-signed { border-color: #3a6a4a; color: #8aba9a; background: rgba(90,150,110,0.12); }
+.rr-status-cell { width: 1%; white-space: nowrap; }
+.rr-status-pick {
+  max-width: 11.5rem;
+  padding: 0.12rem 0.28rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+.rr-status-pick.is-head { max-width: 13rem; }
 .rr-badge.is-high,
 .rr-badge.is-urgent { border-color: #a04040; color: #e09090; background: rgba(196,80,80,0.1); }
 .rr-badge.is-low { border-color: #666; color: #bbb; }
@@ -639,7 +650,7 @@ body.rr {
   margin-bottom: 0.1rem;
 }
 .rr-intake-mini .rr-kv {
-  /* short labels: File/Type/SKU/Name/Pri — avoid wrap mud */
+  /* short labels: File/Bay/SKU/Name/Pri — avoid wrap mud */
   grid-template-columns: 2.75rem minmax(0, 1fr);
   column-gap: 0.35rem;
   padding: 0.03rem 0;
@@ -1461,4 +1472,29 @@ body.rr.theme-light .rr-comment.is-agent {
   border-color: #9a8a5a;
   color: #c8b878;
   background: rgba(154, 138, 90, 0.14);
+}
+.rr-pri {
+  display: inline-flex;
+  gap: 0.15rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.rr-pri .is-hid { display: none; }
+.rr-pri.is-open .is-hid { display: inline; }
+.rr-lane-chip.is-on.is-low {
+  border-color: #666;
+  color: #bbb;
+  background: rgba(90, 90, 90, 0.12);
+}
+.rr-lane-chip.is-on.is-normal {
+  border-color: var(--line);
+  color: var(--dim);
+  background: transparent;
+}
+.rr-lane-chip.is-on.is-high,
+.rr-lane-chip.is-on.is-urgent {
+  border-color: #a04040;
+  color: #e09090;
+  background: rgba(196, 80, 80, 0.1);
+}
 }

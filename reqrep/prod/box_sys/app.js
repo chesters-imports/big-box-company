@@ -19,8 +19,9 @@
     hideSealed: localStorage.getItem("reqrep.hideSealed") === "1",
     /** ticket body drawer open (default collapsed · header bar) */
     bodyOpen: {},
+    priOpen: {},
     /** in-memory drafts while UI re-renders (BUG30) */
-    drafts: { chunkBodies: {}, compose: {}, newChunkBody: "", newTicketKind: "IDA" },
+    drafts: { chunkBodies: {}, compose: {}, newChunkBody: "", newTicketKind: "IDA", newTicketPri: "Normal" },
   };
 
   const DRAFT_LS = "reqrep.drafts.v1";
@@ -49,6 +50,8 @@
     run_test: "RUN",
   };
   const LANE_ORDER = ["discussion", "paused", "run", "test", "closed"];
+  const TICKET_PRI = ["Low", "Normal", "High", "Urgent"];
+  const PRI_RANK = { Urgent: 0, High: 1, Normal: 2, Low: 3 };
   const KIND_LABEL = { IDA: "IDA", BUG: "BUG", CHG: "CHG" };
 
   function toast(msg, err) {
@@ -254,20 +257,34 @@
 
   function statusLabel(s) {
     const m = {
-      discussing: "discuss",
-      scope_locked: "scope lock",
-      prep_draft: "prep",
-      signed: "signed",
-      building: "build",
-      done: "done",
-      parked: "park",
+      active: "active",
+      on_hold: "on hold",
+      shelved: "shelved",
+      shipped: "shipped",
     };
     return m[s] || s || "—";
   }
 
+  const BAY_STATUSES = [
+    ["active", "active", "In play"],
+    ["on_hold", "on hold", "Paused — coming back"],
+    ["shelved", "shelved", "Not in the pile"],
+    ["shipped", "shipped", "Out the door"],
+  ];
+
+  function statusSelectHtml(current, extraClass) {
+    const cur = current || "active";
+    const opts = BAY_STATUSES.map(
+      ([v, lab, hint]) =>
+        `<option value="${v}" ${v === cur ? "selected" : ""}>${lab}</option>`
+    ).join("");
+    const hint = (BAY_STATUSES.find(([v]) => v === cur) || [])[2] || "";
+    return `<select class="rr-select rr-status-pick ${extraClass || ""}" data-bay-status title="${esc(hint)}">${opts}</select>`;
+  }
+
   function displayTitle(c) {
     if (c && c.title) return c.title;
-    const kind = String((c && c.req_type) || "REQ").toUpperCase();
+    const kind = String((c && c.req_type) || "BAY").toUpperCase();
     const sku = (c && c.sku) || "";
     const name = (c && c.product_name) || "";
     if (sku && name) return `${kind}: ROM SKU ${sku} "${name}"`;
@@ -387,7 +404,7 @@
     setView("list");
     if (!state.cases.length) {
       viewList.innerHTML =
-        '<div class="rr-empty">No requests. <strong>+ REQ</strong> opens a bay.</div>';
+        '<div class="rr-empty">No requests. <strong>+ REPREQ BAY</strong> opens a bay.</div>';
       return;
     }
     const counts = (state.listInbox && state.listInbox.counts) || {};
@@ -401,7 +418,7 @@
         <button type="button" class="rr-inbox-row ${later ? "is-later" : "is-action"}" data-case="${esc(t.case_id)}" data-chunk="${esc(t.chunk_id)}" title="${esc(t.case_title || "")}">
           <span class="rr-inbox-ref">${esc(t.ref)}</span>
           <span class="rr-badge is-${esc(String(t.work_lane || "").replace(/_/g, "-"))}">${esc(LANE_LABEL[t.work_lane] || t.work_lane)}</span>
-          ${later ? "" : `<span class="rr-badge is-${esc((t.priority || "").toLowerCase())}">${esc(t.priority || "")}</span>`}
+          <span class="rr-badge is-${esc((t.priority || "").toLowerCase())}">${esc(t.priority || "")}</span>
           <span class="rr-inbox-peek">${esc(t.peek || "")}</span>
         </button>`;
     }
@@ -424,12 +441,12 @@
         (c) => `
       <tr data-id="${esc(c.id)}">
         <td class="rr-code">${esc(c.req_code)}</td>
-        <td><span class="rr-badge">${esc(c.req_type || "REQ")}</span></td>
+        <td><span class="rr-badge">${esc(c.req_type || "BAY")}</span></td>
         <td><strong>${esc(c.title || displayTitle(c))}</strong></td>
         <td class="rr-muted">${esc(c.producer || "—")}</td>
         <td class="rr-muted">${esc(c.hands || "—")}</td>
         <td><span class="rr-badge is-${esc((c.priority || "").toLowerCase())}">${esc(c.priority || "—")}</span></td>
-        <td><span class="rr-badge is-${esc(c.status || "")}">${esc(statusLabel(c.status))}</span></td>
+        <td class="rr-status-cell">${statusSelectHtml(c.status)}</td>
         <td class="rr-ticket-pots" title="Open tickets: active lanes vs paused">
           <span class="rr-pot-act">${c.open_active ?? "—"} act</span>
           <span class="rr-pot-sep">·</span>
@@ -482,7 +499,7 @@
       <table class="rr-table">
         <thead>
           <tr>
-            <th>File</th><th>Type</th><th>Title line</th><th>Producer</th>
+            <th>File</th><th>Bay</th><th>Title line</th><th>Producer</th>
             <th>Hands</th><th>Pri</th><th>Status</th><th>Tickets</th>
           </tr>
         </thead>
@@ -492,6 +509,7 @@
     viewList.querySelectorAll("tbody tr").forEach((tr) => {
       tr.addEventListener("click", () => openCase(tr.getAttribute("data-id")));
     });
+    bindBayStatusPicks(viewList);
     const tog = viewList.querySelector("#btnInboxToggle");
     if (tog) {
       tog.addEventListener("click", async () => {
@@ -554,6 +572,43 @@
     else renderList();
   }
 
+  function applyBayStatusLocal(caseId, status) {
+    const row = (state.cases || []).find((c) => c.id === caseId);
+    if (row) row.status = status;
+    if (state.case && state.case.id === caseId) state.case.status = status;
+  }
+
+  function bindBayStatusPicks(root) {
+    if (!root) return;
+    root.querySelectorAll("[data-bay-status]").forEach((sel) => {
+      sel.addEventListener("click", (e) => e.stopPropagation());
+      sel.addEventListener("mousedown", (e) => e.stopPropagation());
+      sel.addEventListener("change", async (e) => {
+        e.stopPropagation();
+        const tr = sel.closest("tr[data-id]");
+        const caseId = (tr && tr.getAttribute("data-id")) || (state.case && state.case.id);
+        if (!caseId) return;
+        const prev = sel.getAttribute("data-prev") || sel.value;
+        sel.setAttribute("data-prev", sel.value);
+        try {
+          const data = await api(`/api/cases/${encodeURIComponent(caseId)}/meta`, {
+            method: "POST",
+            body: JSON.stringify({ status: sel.value }),
+          });
+          applyBayStatusLocal(caseId, data.case.status);
+          if (state.view === "case" && state.case && state.case.id === caseId) {
+            state.case = data.case;
+            metaCount.textContent = statusLabel(state.case.status);
+          }
+        } catch (err) {
+          sel.value = prev;
+          toast(err.message || "status failed", true);
+        }
+      });
+      sel.setAttribute("data-prev", sel.value);
+    });
+  }
+
   function bindIntakeTitlePreview(root) {
     const kindEl = root.querySelector("#metaType, [name=req_type]");
     const skuEl = root.querySelector("#metaSku, [name=sku]");
@@ -562,7 +617,7 @@
     if (!prev) return;
     const tick = () => {
       prev.textContent = liveTitlePreview(
-        kindEl ? kindEl.value : "REQ",
+        kindEl ? kindEl.value : "BAY",
         skuEl ? skuEl.value : "",
         nameEl ? nameEl.value : ""
       );
@@ -581,6 +636,9 @@
       const ac = a.closed ? 1 : 0;
       const bc = b.closed ? 1 : 0;
       if (ac !== bc) return ac - bc; // open first
+      const ap = PRI_RANK[a.priority || "Normal"] ?? 9;
+      const bp = PRI_RANK[b.priority || "Normal"] ?? 9;
+      if (ap !== bp) return ap - bp;
       return (Number(a.ticket_seq) || 0) - (Number(b.ticket_seq) || 0);
     });
   }
@@ -634,6 +692,15 @@
       </div>`;
 
     const when = stampWhen(ch);
+    const pri = ch.priority || "Normal";
+    const priOpen = !!state.priOpen[ch.id];
+    const priBar = `
+      <div class="rr-pri ${priOpen ? "is-open" : ""}" data-pri-wrap="${esc(ch.id)}" title="Ticket priority">
+        ${TICKET_PRI.map(
+          (P) =>
+            `<button type="button" class="rr-lane-chip is-${esc(P.toLowerCase())} ${pri === P ? "is-on" : ""} ${!priOpen && pri !== P ? "is-hid" : ""}" data-pri-set="${esc(ch.id)}" data-pri="${esc(P)}">${esc(P)}</button>`
+        ).join("")}
+      </div>`;
     const laneBar = `
       <div class="rr-lane" title="Work-order lane — not approval">
         ${LANE_ORDER.map(
@@ -657,6 +724,7 @@
           <span class="rr-ticket-snip">${esc(ticketSnippet(ch.body))}</span>
         </button>
         <div class="rr-ticket-bar-actions">
+          ${priBar}
           ${laneBar}
           ${actions}
         </div>
@@ -688,6 +756,8 @@
     if (nb) state.drafts.newChunkBody = nb.value || "";
     const nk = $("newTicketKind");
     if (nk) state.drafts.newTicketKind = nk.value || "IDA";
+    const np = $("newTicketPri");
+    if (np) state.drafts.newTicketPri = np.value || "Normal";
     persistDrafts();
   }
 
@@ -701,6 +771,7 @@
         compose: state.drafts.compose,
         newChunkBody: state.drafts.newChunkBody,
         newTicketKind: state.drafts.newTicketKind,
+        newTicketPri: state.drafts.newTicketPri,
         t: Date.now(),
       };
       localStorage.setItem(DRAFT_LS, JSON.stringify(all));
@@ -718,6 +789,7 @@
       state.drafts.compose = { ...(d.compose || {}) };
       state.drafts.newChunkBody = d.newChunkBody || "";
       state.drafts.newTicketKind = d.newTicketKind || "IDA";
+      state.drafts.newTicketPri = d.newTicketPri || "Normal";
     } catch (e) {
       /* */
     }
@@ -752,6 +824,8 @@
     if (nb && state.drafts.newChunkBody) nb.value = state.drafts.newChunkBody;
     const nk = $("newTicketKind");
     if (nk && state.drafts.newTicketKind) nk.value = state.drafts.newTicketKind;
+    const np = $("newTicketPri");
+    if (np && state.drafts.newTicketPri) np.value = state.drafts.newTicketPri;
   }
 
   function renderCase(opts = {}) {
@@ -761,7 +835,7 @@
     const main = mainEl();
     const keepY = opts.restoreScroll ? null : main ? main.scrollTop : 0;
     setView("case");
-    pageTitle.textContent = c.req_code || "REQ";
+    pageTitle.textContent = c.req_code || "BAY";
     metaCount.textContent = statusLabel(c.status);
 
     const scope = c.scope || {};
@@ -785,6 +859,7 @@
         <button type="button" class="rr-toc-item ${on ? "is-on" : ""} ${ch.closed ? "is-sealed" : ""}" data-focus="${esc(ch.id)}">
           <span class="rr-toc-ref">${esc(ch.ref || "?")}</span>
           <span class="rr-badge is-kind-${esc(ch.ticket_kind || "IDA")}">${esc(ch.ticket_kind || "IDA")}</span>
+          <span class="rr-badge is-${esc((ch.priority || "Normal").toLowerCase())}">${esc(ch.priority || "Normal")}</span>
           <span class="rr-toc-snip">${esc(ticketSnippet(ch.body))}</span>
           <span class="rr-toc-lane">${esc(LANE_LABEL[ch.work_lane || "discussion"] || "")}</span>
         </button>`;
@@ -795,8 +870,9 @@
       <div class="rr-intake-mini">
         <div class="rr-intake-group">
           <div class="rr-intake-gtitle">Codes</div>
-          ${kvRow("Type", c.req_type || "REQ")}
+          ${kvRow("Bay", c.req_type || "BAY")}
           ${kvRow("SKU", c.sku)}
+          ${kvRow("Status", statusLabel(c.status))}
         </div>
         <div class="rr-intake-group">
           <div class="rr-intake-gtitle">Product</div>
@@ -812,11 +888,11 @@
 
     const intakeEdit = `
       <div class="rr-intake-edit">
-        <div class="rr-field"><label>Type</label>
-          <select id="metaType">${["REQ", "MOD", "ADDENDUM", "BUG"]
+        <div class="rr-field"><label>Bay</label>
+          <select id="metaType">${["BAY", "MOD", "ADDENDUM", "BUG"]
             .map(
               (t) =>
-                `<option value="${t}" ${t === (c.req_type || "REQ") ? "selected" : ""}>${t}</option>`
+                `<option value="${t}" ${t === (c.req_type || "BAY") ? "selected" : ""}>${t}</option>`
             )
             .join("")}</select>
         </div>
@@ -832,6 +908,12 @@
                 `<option ${p === (c.priority || "Normal") ? "selected" : ""}>${p}</option>`
             )
             .join("")}</select>
+        </div>
+        <div class="rr-field"><label>Status</label>
+          <select id="metaStatus">${BAY_STATUSES.map(
+            ([v, lab, hint]) =>
+              `<option value="${v}" ${v === (c.status || "active") ? "selected" : ""}>${lab} — ${hint}</option>`
+          ).join("")}</select>
         </div>
       </div>`;
 
@@ -872,9 +954,9 @@
             <h2 class="rr-case-title">${esc(displayTitle(c))}</h2>
             <div class="rr-case-meta-line">
               <span class="rr-code">${esc(c.req_code)}</span>
-              <span class="rr-badge">${esc(c.req_type || "REQ")}</span>
+              <span class="rr-badge">${esc(c.req_type || "BAY")}</span>
+              ${statusSelectHtml(c.status, "is-head")}
               <span class="rr-muted">${esc(c.sku || "—")}</span>
-              <span class="rr-badge is-${esc(c.status || "")}">${esc(statusLabel(c.status))}</span>
               <span class="rr-badge is-${esc((c.priority || "").toLowerCase())}">${esc(c.priority || "—")}</span>
               ${
                 prepSigned
@@ -961,6 +1043,14 @@
                               <option value="CHG">CHG — change request</option>
                             </select>
                           </label>
+                          <label class="rr-add-kind">Pri
+                            <select id="newTicketPri">
+                              ${TICKET_PRI.map(
+                                (P) =>
+                                  `<option ${P === (state.drafts.newTicketPri || "Normal") ? "selected" : ""}>${P}</option>`
+                              ).join("")}
+                            </select>
+                          </label>
                         </div>
                         <textarea id="newChunkBody" placeholder="Ticket body…"></textarea>
                         <div class="rr-compose-row">
@@ -990,6 +1080,7 @@
   function bindCaseEvents() {
     const c = state.case;
     if (!c) return;
+    bindBayStatusPicks(viewCase);
 
     const btnPurpose = $("btnPurpose");
     if (btnPurpose) {
@@ -1059,6 +1150,7 @@
           body: JSON.stringify({
             body: ta.value || "",
             ticket_kind: kindEl ? kindEl.value : "IDA",
+            priority: $("newTicketPri") ? $("newTicketPri").value : "Normal",
           }),
         });
         state.case = data.case;
@@ -1069,6 +1161,7 @@
         }
         state.drafts.newChunkBody = "";
         state.drafts.newTicketKind = "IDA";
+        state.drafts.newTicketPri = "Normal";
         persistDrafts();
         renderCase();
         toast(data.chunk && data.chunk.ref ? data.chunk.ref : "ticket");
@@ -1195,6 +1288,38 @@
           }
         } catch (e) {
           toast(e.message, true);
+        }
+      });
+    });
+
+    viewCase.querySelectorAll("[data-pri-set]").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute("data-pri-set");
+        const pri = btn.getAttribute("data-pri");
+        const ch = (c.chunks || []).find((x) => x.id === id);
+        const cur = (ch && ch.priority) || "Normal";
+        if (!state.priOpen[id]) {
+          state.priOpen[id] = true;
+          renderCase({ restoreScroll: true });
+          return;
+        }
+        if (pri === cur) {
+          state.priOpen[id] = false;
+          renderCase({ restoreScroll: true });
+          return;
+        }
+        try {
+          const data = await api(
+            `/api/cases/${encodeURIComponent(c.id)}/chunks/${encodeURIComponent(id)}/priority`,
+            { method: "POST", body: JSON.stringify({ priority: pri }) }
+          );
+          state.case = data.case;
+          state.priOpen[id] = false;
+          renderCase({ restoreScroll: true });
+          toast(`${(ch && ch.ref) || "ticket"} · ${pri}`);
+        } catch (err) {
+          toast(err.message, true);
         }
       });
     });
@@ -1342,6 +1467,13 @@
         persistDrafts();
       });
     }
+    const newPri = $("newTicketPri");
+    if (newPri) {
+      newPri.addEventListener("change", () => {
+        state.drafts.newTicketPri = newPri.value || "Normal";
+        persistDrafts();
+      });
+    }
 
     $("btnEditIntake")?.addEventListener("click", () => {
       state.editIntake = true;
@@ -1362,6 +1494,7 @@
             producer: $("metaProducer").value,
             hands: $("metaHands").value,
             priority: $("metaPriority").value,
+            status: $("metaStatus") ? $("metaStatus").value : undefined,
           }),
         });
         state.case = data.case;
@@ -1538,6 +1671,7 @@
           producer: fd.get("producer"),
           hands: fd.get("hands"),
           priority: fd.get("priority"),
+          status: fd.get("status"),
           seed: fd.get("seed"),
         }),
       });

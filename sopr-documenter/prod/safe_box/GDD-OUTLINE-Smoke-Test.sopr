@@ -1,0 +1,39 @@
+{
+  "house": "BIGBOX",
+  "product": "sopr-documenter",
+  "version": 1,
+  "doc_name": "GDD-OUTLINE Smoke Test",
+  "slug": "GDD-OUTLINE-Smoke-Test",
+  "next_part": 2,
+  "next_section": 3,
+  "section_order": [
+    "sec-0001",
+    "sec-0002"
+  ],
+  "sections": {
+    "sec-0001": {
+      "section_id": "sec-0001",
+      "label": "Loose / unbinned",
+      "part_ids": []
+    },
+    "sec-0002": {
+      "section_id": "sec-0002",
+      "label": "Overview",
+      "part_ids": [
+        "SPR-0001"
+      ]
+    }
+  },
+  "parts": {
+    "SPR-0001": {
+      "part_code": "SPR-0001",
+      "block": "text",
+      "leaf": "fgfljglfd",
+      "section_id": "sec-0002",
+      "created_at": 1786907156.262343,
+      "as_pre": false
+    }
+  },
+  "tps_chips": [],
+  "updated_at": 1786907156.262343
+}

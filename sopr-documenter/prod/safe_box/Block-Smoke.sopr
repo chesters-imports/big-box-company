@@ -1,0 +1,102 @@
+{
+  "house": "BIGBOX",
+  "product": "sopr-documenter",
+  "version": 1,
+  "doc_name": "Block Smoke",
+  "slug": "Block-Smoke",
+  "next_part": 5,
+  "next_section": 4,
+  "section_order": [
+    "sec-0001",
+    "sec-0002",
+    "sec-0003"
+  ],
+  "sections": {
+    "sec-0001": {
+      "section_id": "sec-0001",
+      "label": "Loose / unbinned",
+      "part_ids": []
+    },
+    "sec-0002": {
+      "section_id": "sec-0002",
+      "label": "Picture Examples",
+      "part_ids": [
+        "SPR-0002",
+        "SPR-0004",
+        "SPR-0003"
+      ]
+    },
+    "sec-0003": {
+      "section_id": "sec-0003",
+      "label": "Tables",
+      "part_ids": [
+        "SPR-0001"
+      ]
+    }
+  },
+  "parts": {
+    "SPR-0001": {
+      "part_code": "SPR-0001",
+      "block": "table",
+      "leaf": "Demo table",
+      "section_id": "sec-0003",
+      "created_at": 1785160226.7194285,
+      "as_pre": false,
+      "table": {
+        "rows": [
+          [
+            "Phase",
+            "Owner"
+          ],
+          [
+            "Art",
+            "Sam"
+          ],
+          [
+            "Code",
+            "Dev"
+          ],
+          [
+            "",
+            ""
+          ],
+          [
+            "",
+            ""
+          ]
+        ],
+        "header": true
+      }
+    },
+    "SPR-0002": {
+      "part_code": "SPR-0002",
+      "block": "image",
+      "leaf": "A caption",
+      "section_id": "sec-0002",
+      "created_at": 1785160226.736104,
+      "as_pre": false,
+      "image_id": "m.2b9835255c3c858d",
+      "image_name": ""
+    },
+    "SPR-0003": {
+      "part_code": "SPR-0003",
+      "block": "text",
+      "leaf": "plain scrap",
+      "section_id": "sec-0002",
+      "created_at": 1785160226.741105,
+      "as_pre": false
+    },
+    "SPR-0004": {
+      "part_code": "SPR-0004",
+      "block": "image",
+      "leaf": "nice reels",
+      "section_id": "sec-0002",
+      "created_at": 1785160407.435306,
+      "as_pre": false,
+      "image_id": "m.3923e16292cb2757",
+      "image_name": "Screenshot 2026-06-04 133617.png"
+    }
+  },
+  "tps_chips": [],
+  "updated_at": 1785160461.855308
+}
